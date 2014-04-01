@@ -1,0 +1,6 @@
+language: cpp
+compiler:
+  - gcc
+  - clang
+# TODO: change
+script: ./configure && make
