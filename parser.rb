@@ -8,6 +8,36 @@ require 'open-uri'
 
 require_relative 'secrets'
 
+def extract_unique_values(hash_array, key)
+	values = Array.new
+	hash_array.map do |hash|
+		values << (Array.new << hash[key])
+	end
+
+	result = values.flatten.uniq
+	return values.flatten.uniq
+end
+ 
+def surround_values(values)
+	quoted_values = String.new
+	values.each do |value|
+		quoted_values << "," unless quoted_values.empty?
+		quoted_values << '("' << value << '")'
+	end
+
+	return quoted_values
+end
+ 
+def quoted_values(values)
+	quoted_values = String.new
+	values.each do |value|
+		quoted_values << "," unless quoted_values.empty?
+		quoted_values << '"' << value << '"'
+	end
+
+	return quoted_values
+end
+
 class PageParser
 	def initialize(db, site)
 		@db = db
@@ -19,12 +49,18 @@ class PageParser
 			page = Nokogiri::HTML(open(@site[:uri] % i))
 			@places = @site[:parser].parse(page)
 
-			self.insert_cuisines
-			self.insert_types
+			self.insert_values(:cuisins, "cuisine_types")
+			self.insert_values(:types, "cafe_types")
 			self.insert_cafes
 		
 			self.associate_cafes
 		end
+	end
+
+	protected
+	def insert_values(key, table_name)
+		values = extract_unique_values(@places, key)
+		@db.query "INSERT IGNORE INTO #{table_name}(name) VALUES %s" % surround_values(values)
 	end
 
 	protected
@@ -45,55 +81,12 @@ class PageParser
 		end
 	end
 
-	protected 
-	def insert_cuisines()
-		cuisins = extract_unique_values(@places, :cuisins)
-		insert_values(cuisins, ["name"], 'cuisine_types') unless cuisins == nil
-	end
-
-	protected 
-	def insert_types()
-		types = extract_unique_values(@places, :types)
-		insert_values(types, ["name"], 'cafe_types') unless types == nil
-	end
-
 	protected
 	def associate_cafes
 		@places.each do |place|
-			#TODO
-			types = String.new
-			place[types]
-			cuisines = String.new
-
-
-			@db.query "INSERT IGNORE INTO types SELECT %i, id FROM cafe_types WHERE name IN (%s)" % [place[:id], place[:cuisins].join(',')]
-			@db.query "INSERT IGNORE INTO cuisines SELECT %i, id FROM cuisine_types WHERE name IN (%s)" % [place[:id], place[:types].join(',')]
-		end
-	end
-
-	protected
-	def extract_unique_values(hash_array, key)
-		values = Array.new
-		hash_array.map do |hash|
-			values << (Array.new << hash[key])
-		end
-
-		result = values.flatten.uniq
-		return values.flatten.uniq
-	end
-
-	protected
-	def insert_values(values, fields, table_name)
-		query = "INSERT IGNORE INTO #{table_name}(%s) VALUES %s" % [fields.join(','), self.get_quoted_values(values)]
-		@db.query query
-	end
-
-	protected 
-	def get_quoted_values(values)
-		quoted_values = String.new
-		values.each do |value|
-			quoted_values << "," unless quoted_values.empty?
-			quoted_values << '("' << value << '")' unless value == nil
+			next if place[:id] == nil
+			@db.query "INSERT IGNORE INTO cuisines SELECT %i, id FROM cuisine_types WHERE name IN (%s)" % [place[:id], quoted_values(place[:cuisins])] unless place[:cuisins].empty?
+			@db.query "INSERT IGNORE INTO types SELECT %i, id FROM cafe_types WHERE name IN (%s)" % [place[:id], quoted_values(place[:types])] unless place[:types].empty?
 		end
 	end
 end
