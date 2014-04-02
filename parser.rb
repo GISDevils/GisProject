@@ -19,10 +19,10 @@ def extract_unique_values(hash_array, key)
 end
  
 def surround_values(values)
-	quoted_values = String.new
+	surrounded_values = String.new
 	values.each do |value|
-		quoted_values << "," unless quoted_values.empty?
-		quoted_values << '("' << value << '")'
+		surrounded_values << "," unless surrounded_values.empty?
+		surrounded_values << '("' << value << '")'
 	end
 
 	return quoted_values
@@ -91,7 +91,7 @@ class PageParser
 	end
 end
 
-class ParserGobars
+class GobarsParser
 	def parse(data)
 		page = data.css('div.text').text.tr("\t",'').split(/\n/).uniq
 
@@ -117,7 +117,7 @@ class ParserGobars
 
 		phones_list = place_data.scan(/(?<=Телефон: )([\s\S]+)(?=Кухня:)/)[0]
 		return if phones_list.class == nil.class
-		phones = phones_list[0].split(', ')
+		phones = phones_list[0].gsub(':w', '').split(', ')
 
 		cuisins_list = place_data.scan(/(?<=Кухня: )([A-Zа-я\,\s]*)/)[0]
 		return if cuisins_list.class == nil.class
@@ -130,7 +130,7 @@ end
 begin
 	sites = [
 		#{:uri => 'http://chel.gobars.ru/bars/page_%i.html', :num => 6},
-		{:uri => 'http://www.resto74.ru/items/%i', :num => 33, :parser => ParserGobars.new}
+		{:uri => 'http://www.resto74.ru/items/%i', :num => 33, :parser => GobarsParser.new}
 	]
 
 	db = Mysql.init
