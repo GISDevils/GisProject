@@ -25,10 +25,10 @@ def surround_values(values)
 		surrounded_values << '("' << value << '")'
 	end
 
-	return quoted_values
+	return surrounded_values
 end
  
-def quoted_values(values)
+def quote_values(values)
 	quoted_values = String.new
 	values.each do |value|
 		quoted_values << "," unless quoted_values.empty?
@@ -52,6 +52,7 @@ class PageParser
 			self.insert_values(:cuisins, "cuisine_types")
 			self.insert_values(:types, "cafe_types")
 			self.insert_cafes
+			self.insert_addresses
 		
 			self.associate_cafes
 		end
@@ -82,11 +83,22 @@ class PageParser
 	end
 
 	protected
+	def insert_addresses()
+		addresses = String.new
+		@places.each do |place|
+			addresses << "," unless addresses.empty?
+			addresses << '(' << place[:id].to_s << ',"' << place[:address] << '")' unless place[:id] == nil or place[:address] == nil
+		end
+		puts addresses
+		@db.query "INSERT IGNORE INTO addresses VALUES %s" % addresses unless addresses.empty?
+	end
+
+	protected
 	def associate_cafes
 		@places.each do |place|
 			next if place[:id] == nil
-			@db.query "INSERT IGNORE INTO cuisines SELECT %i, id FROM cuisine_types WHERE name IN (%s)" % [place[:id], quoted_values(place[:cuisins])] unless place[:cuisins].empty?
-			@db.query "INSERT IGNORE INTO types SELECT %i, id FROM cafe_types WHERE name IN (%s)" % [place[:id], quoted_values(place[:types])] unless place[:types].empty?
+			@db.query "INSERT IGNORE INTO cuisines SELECT %i, id FROM cuisine_types WHERE name IN (%s)" % [place[:id], quote_values(place[:cuisins])] unless place[:cuisins].empty?
+			@db.query "INSERT IGNORE INTO types SELECT %i, id FROM cafe_types WHERE name IN (%s)" % [place[:id], quote_values(place[:types])] unless place[:types].empty?
 		end
 	end
 end
@@ -108,29 +120,33 @@ class GobarsParser
 		place_data.chomp!
 
 		name_arr = place_data.scan(/(^[^,]+)/)[0]
-		return if name_arr.class == nil.class
+		return if name_arr == nil
 		name = name_arr[0]
 
 		types = place_data.scan(/(?<=, )([\s\S]+)(?=Адрес:)/)[0]
-		return if types.class == nil.class
+		return if types == nil
 		types = types[0].split(', ')
 
+		address = place_data.scan(/(?<=Адрес: )([\s\S]+)(?=Телефон:)/)[0]
+		return if address == nil
+		address = address[0]
+
 		phones_list = place_data.scan(/(?<=Телефон: )([\s\S]+)(?=Кухня:)/)[0]
-		return if phones_list.class == nil.class
+		return if phones_list == nil
 		phones = phones_list[0].gsub(':w', '').split(', ')
 
 		cuisins_list = place_data.scan(/(?<=Кухня: )([A-Zа-я\,\s]*)/)[0]
-		return if cuisins_list.class == nil.class
+		return if cuisins_list == nil
 		cuisins = cuisins_list[0].strip.split(', ')
 
-		places << {:name => name, :types => types, :phones => phones, :cuisins => cuisins, :min_price => "0"}
+		places << {:name => name, :types => types, :phones => phones, :cuisins => cuisins, :address => address, :min_price => "0"}
 	end
 end
 
 begin
 	sites = [
-		#{:uri => 'http://chel.gobars.ru/bars/page_%i.html', :num => 6},
-		{:uri => 'http://www.resto74.ru/items/%i', :num => 33, :parser => GobarsParser.new}
+		{:uri => 'http://chel.gobars.ru/bars/page_%i.html', :num => 6},
+		#{:uri => 'http://www.resto74.ru/items/%i', :num => 33, :parser => GobarsParser.new}
 	]
 
 	db = Mysql.init
