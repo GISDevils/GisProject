@@ -125,7 +125,7 @@ class GobarsParser
 
 		types = place_data.scan(/(?<=, )([\s\S]+)(?=Адрес:)/)[0]
 		return if types == nil
-		types = types[0].split(', ')
+		types = types[0].downcase.split(', ')
 
 		address = place_data.scan(/(?<=Адрес: )([\s\S]+)(?=Телефон:)/)[0]
 		return if address == nil
@@ -133,20 +133,59 @@ class GobarsParser
 
 		phones_list = place_data.scan(/(?<=Телефон: )([\s\S]+)(?=Кухня:)/)[0]
 		return if phones_list == nil
-		phones = phones_list[0].gsub(':w', '').split(', ')
+		phones = phones_list[0].gsub(':w', '').downcase.split(', ')
 
 		cuisins_list = place_data.scan(/(?<=Кухня: )([A-Zа-я\,\s]*)/)[0]
 		return if cuisins_list == nil
-		cuisins = cuisins_list[0].strip.split(', ')
+		cuisins = cuisins_list[0].strip.downcase.split(', ')
 
 		places << {:name => name, :types => types, :phones => phones, :cuisins => cuisins, :address => address, :min_price => "0"}
 	end
 end
 
+class GobarsParser
+	def parse(data)
+		bar_list = data.css('div.kb_text')
+		places = Array.new
+		bar_list.each do |bar_data|
+			extract_place_data(places, bar_data)
+		end
+
+		return places
+	end
+
+	protected
+	def extract_place_data(places, place_data)
+		name = place_data.css('a').text
+
+		blocks = place_data.css('p')
+		size = blocks.size
+		return if blocks == nil 
+
+		types_id = 0
+		types = blocks[types_id].text.downcase.split(', ') unless types_id >= size
+
+		address_id = 1
+		address = blocks[address_id].text.downcase unless address_id >= size
+
+		phones_id = size - 1
+		phones = blocks[phones_id].css('span') unless phones_id >= size or phones_id <= address_id
+		phones = phones[0].text.downcase.split(', ') unless phones == nil or phones.empty?
+
+		cuisins = []
+
+		prices = place_data.text.downcase.scan(/(?<=Счет\:)([\S\s]+)/)[0]
+		prices = prices[0].scan(/[0-9]+/) unless prices == nil
+		min_price = prices == nil ? 0 : prices[0]
+
+		places << {:name => name, :types => types, :phones => phones, :cuisins => cuisins, :address => address, :min_price => min_price}
+	end
+end
+
 begin
 	sites = [
-		{:uri => 'http://chel.gobars.ru/bars/page_%i.html', :num => 6},
-		#{:uri => 'http://www.resto74.ru/items/%i', :num => 33, :parser => GobarsParser.new}
+		{:uri => 'http://chel.gobars.ru/bars/page_%i.html', :num => 6, :parser => GobarsParser.new},
+		{:uri => 'http://www.resto74.ru/items/%i', :num => 33, :parser => GobarsParser.new},
 	]
 
 	db = Mysql.init
