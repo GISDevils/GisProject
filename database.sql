@@ -11,9 +11,10 @@ CREATE TABLE cafes (
 
 CREATE TABLE addresses (
 	cafe_id INT(10) NOT NULL,
-	address VARCHAR(50) NOT NULL,
+	street VARCHAR(50) NOT NULL,
+	building SMALLINT NOT NULL,
 
-	UNIQUE(cafe_id, address),
+	UNIQUE(cafe_id, street, building),
 
 	FOREIGN KEY (cafe_id) REFERENCES cafes(id)
 );
