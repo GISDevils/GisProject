@@ -21,7 +21,7 @@ end
 def surround_values(values)
 	surrounded_values = String.new
 	values.each do |value|
-		surrounded_values << "," unless surrounded_values.empty?
+		surrounded_values << ',' unless surrounded_values.empty?
 		surrounded_values << '("' << value << '")'
 	end
 
@@ -31,7 +31,7 @@ end
 def quote_values(values)
 	quoted_values = String.new
 	values.each do |value|
-		quoted_values << "," unless quoted_values.empty?
+		quoted_values << ',' unless quoted_values.empty?
 		quoted_values << '"' << value << '"'
 	end
 
@@ -47,7 +47,7 @@ class PageParser
 	def proceed()
 		@site[:num].times do |i|
 			page = Nokogiri::HTML(open(@site[:uri] % i))
-			@places = @site[:parser].parse(page)
+			@places = @site[:parser].new.parse(page)
 
 			self.insert_values(:cuisins, "cuisine_types")
 			self.insert_values(:types, "cafe_types")
@@ -86,8 +86,9 @@ class PageParser
 	def insert_addresses()
 		addresses = String.new
 		@places.each do |place|
-			addresses << "," unless addresses.empty?
-			addresses << '(' << place[:id].to_s << ',"' << place[:address] << '")' unless place[:id] == nil or place[:address] == nil
+			next if place[:id] == nil or place[:address] == nil
+			addresses << ',' unless addresses.empty?
+			addresses << '(' << place[:id].to_s << ',"' << place[:address] << '")' 
 		end
 		@db.query "INSERT IGNORE INTO addresses VALUES %s" % addresses unless addresses.empty?
 	end
@@ -102,7 +103,7 @@ class PageParser
 	end
 end
 
-class GobarsParser
+class Resto74Parser
 	def parse(data)
 		page = data.css('div.text').text.tr("\t",'').split(/\n/).uniq
 
@@ -183,8 +184,8 @@ end
 
 begin
 	sites = [
-		{:uri => 'http://chel.gobars.ru/bars/page_%i.html', :num => 6, :parser => GobarsParser.new},
-		{:uri => 'http://www.resto74.ru/items/%i', :num => 33, :parser => GobarsParser.new},
+		{:uri => 'http://chel.gobars.ru/bars/page_%i.html', :num => 6, :parser => GobarsParser},
+		{:uri => 'http://www.resto74.ru/items/%i', :num => 33, :parser => Resto74Parser},
 	]
 
 	db = Mysql.init
