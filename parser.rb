@@ -13,8 +13,6 @@ def extract_unique_values(hash_array, key)
 	hash_array.map do |hash|
 		values << (Array.new << hash[key])
 	end
-
-	result = values.flatten.uniq
 	return values.flatten.uniq
 end
  
@@ -24,7 +22,6 @@ def surround_values(values)
 		surrounded_values << ',' unless surrounded_values.empty?
 		surrounded_values << '("' << value << '")'
 	end
-
 	return surrounded_values
 end
  
@@ -34,7 +31,6 @@ def quote_values(values)
 		quoted_values << ',' unless quoted_values.empty?
 		quoted_values << '"' << value << '"'
 	end
-
 	return quoted_values
 end
 
@@ -90,7 +86,7 @@ class PageParser
 			addresses << ',' unless addresses.empty?
 			addresses << '(' << place[:id].to_s << ',"' << place[:address] << '")' 
 		end
-		@db.query "INSERT IGNORE INTO addresses VALUES %s" % addresses unless addresses.empty?
+		@db.query "INSERT IGNORE INTO addresses (cafe_id, address) VALUES %s" % addresses unless addresses.empty?
 	end
 
 	protected
@@ -106,12 +102,10 @@ end
 class Resto74Parser
 	def parse(data)
 		page = data.css('div.text').text.tr("\t",'').split(/\n/).uniq
-
 		places = Array.new
 		page.each do |place|
 			extract_place_data(places, place) 
 		end
-
 		return places
 	end
 
@@ -121,64 +115,78 @@ class Resto74Parser
 
 		name_arr = place_data.scan(/(^[^,]+)/)[0]
 		return if name_arr == nil
-		name = name_arr[0]
+		name = name_arr[0].strip
 
 		types = place_data.scan(/(?<=, )([\s\S]+)(?=Адрес:)/)[0]
 		return if types == nil
-		types = types[0].downcase.split(', ')
+		types = types[0].strip.downcase.split(', ')
 
 		address = place_data.scan(/(?<=Адрес: )([\s\S]+)(?=Телефон:)/)[0]
 		return if address == nil
-		address = address[0]
+
+		street = ""
+		building = 0
 
 		phones_list = place_data.scan(/(?<=Телефон: )([\s\S]+)(?=Кухня:)/)[0]
 		return if phones_list == nil
-		phones = phones_list[0].gsub(':w', '').downcase.split(', ')
+		phones = phones_list[0].gsub(':w', '').strip.downcase.split(', ')
 
 		cuisins_list = place_data.scan(/(?<=Кухня: )([A-Zа-я\,\s]*)/)[0]
 		return if cuisins_list == nil
 		cuisins = cuisins_list[0].strip.downcase.split(', ')
 
-		places << {:name => name, :types => types, :phones => phones, :cuisins => cuisins, :address => address, :min_price => "0"}
+		places << {:name => name, :types => types, :phones => phones, :cuisins => cuisins, :address => address, :street => street, :building => building, :min_price => "0"}
 	end
 end
 
 class GobarsParser
 	def parse(data)
-		bar_list = data.css('div.kb_text')
 		places = Array.new
-		bar_list.each do |bar_data|
+		data.css('div.kb_text').each do |bar_data|
 			extract_place_data(places, bar_data)
 		end
-
 		return places
 	end
 
 	protected
 	def extract_place_data(places, place_data)
-		name = place_data.css('a').text
+		new_place = Hash.new
+		new_place[:name] = place_data.css('a').text
 
 		blocks = place_data.css('p')
 		size = blocks.size
 		return if blocks == nil 
 
 		types_id = 0
-		types = (types_id >= size) ? [] : blocks[types_id].text.downcase.split(', ')
-
 		address_id = 1
-		address = (address_id >= size) ? [] : blocks[address_id].text.downcase unless 
-
 		phones_id = size - 1
+
+		new_place[:types] = (types_id >= size) ? [] : blocks[types_id].text.strip.downcase.split(', ')
+
+		address = (address_id >= size) ? "" : blocks[address_id].text.strip.downcase
+		puts address
+		new_place[:address] = address
+
+		address = address.scan(/(?<=\,)([\s\S]+)/)[0][0]
+		building = address.scan(/(?<=\,)([\S\s]+)/)[0]
+		return if address == nil or building == nil
+
+		new_place[:street] = address.scan(/(([\s\S][^\,])+)(?=\,)/)[0][0].strip
+		puts new_place[:street].inspect
+
+		new_place[:building] = building[0].scan(/[0-9]+[a-zA-Zа-яА-Я\/]{0,2}+/)[0].strip
+
+		puts new_place[:building].inspect
+		new_place[:cuisins] = []
+
 		phones = blocks[phones_id].css('span') unless phones_id >= size or phones_id <= address_id
-		phones = (phones == nil or phones.empty?) ? [] : phones[0].text.downcase.split(', ')
+		new_place[:phones] = (phones == nil or phones.empty?) ? [] : phones[0].text.strip.downcase.split(', ')
 
-		cuisins = []
-
-		prices = place_data.text.downcase.scan(/(?<=Счет\:)([\S\s]+)/)[0]
+		prices = place_data.text.strip.downcase.scan(/(?<=Счет\:)([\S\s]+)/)[0]
 		prices = prices[0].scan(/[0-9]+/) unless prices == nil
-		min_price = prices == nil ? 0 : prices[0]
+		new_place[:min_price] = prices == nil ? nil : prices[0]
 
-		places << {:name => name, :types => types, :phones => phones, :cuisins => cuisins, :address => address, :min_price => min_price}
+		places << new_place
 	end
 end
 
