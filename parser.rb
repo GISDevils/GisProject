@@ -124,8 +124,6 @@ class Resto74Parser
 
 		address = place_data.scan(/(?<=Адрес: )([\s\S]+)(?=Телефон:)/)[0]
 		return if address == nil
-		new_place[:address] = address[0]
-
 		address_list = address[0].split(',')
 		return if address_list.size < 2
 
@@ -175,8 +173,6 @@ class GobarsParser
 		new_place[:types] = (types_id >= size) ? [] : blocks[types_id].text.strip.downcase.split(', ')
 
 		address = (address_id >= size) ? "" : blocks[address_id].text.strip.downcase
-
-		new_place[:address] = address
 
 		return if (address = address.scan(/(?<=\,)([\s\S]+)/)[0]) == nil or (address = address[0]) == nil
 		return if (building = address.scan(/(?<=\,)([\S\s]+)/)[0]) == nil or (building = building[0].scan(/[0-9]+[a-zA-Zа-яА-Я\/]{0,2}+/)[0]) == nil
