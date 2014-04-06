@@ -61,7 +61,7 @@ class PageParser
 	protected
 	def insert_values(key, table_name)
 		values = extract_unique_values(@places, key)
-		@db.query "INSERT IGNORE INTO #{table_name}(name) VALUES %s" % surround_values(values)
+		@db.query "INSERT IGNORE INTO #{table_name}(name) VALUES %s" % surround_values(values) unless values.empty?
 	end
 
 	protected
@@ -89,7 +89,6 @@ class PageParser
 			addresses << "," unless addresses.empty?
 			addresses << '(' << place[:id].to_s << ',"' << place[:address] << '")' unless place[:id] == nil or place[:address] == nil
 		end
-		puts addresses
 		@db.query "INSERT IGNORE INTO addresses VALUES %s" % addresses unless addresses.empty?
 	end
 
@@ -163,14 +162,14 @@ class GobarsParser
 		return if blocks == nil 
 
 		types_id = 0
-		types = blocks[types_id].text.downcase.split(', ') unless types_id >= size
+		types = (types_id >= size) ? [] : blocks[types_id].text.downcase.split(', ')
 
 		address_id = 1
-		address = blocks[address_id].text.downcase unless address_id >= size
+		address = (address_id >= size) ? [] : blocks[address_id].text.downcase unless 
 
 		phones_id = size - 1
 		phones = blocks[phones_id].css('span') unless phones_id >= size or phones_id <= address_id
-		phones = phones[0].text.downcase.split(', ') unless phones == nil or phones.empty?
+		phones = (phones == nil or phones.empty?) ? [] : phones[0].text.downcase.split(', ')
 
 		cuisins = []
 
