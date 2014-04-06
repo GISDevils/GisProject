@@ -20,7 +20,7 @@ def surround_values(values)
 	surrounded_values = String.new
 	values.each do |value|
 		surrounded_values << ',' unless surrounded_values.empty?
-		surrounded_values << '("' << value << '")'
+		surrounded_values << '(' << value.inspect << ')'
 	end
 	return surrounded_values
 end
@@ -29,7 +29,7 @@ def quote_values(values)
 	quoted_values = String.new
 	values.each do |value|
 		quoted_values << ',' unless quoted_values.empty?
-		quoted_values << '"' << value << '"'
+		quoted_values << value.inspect
 	end
 	return quoted_values
 end
@@ -65,7 +65,7 @@ class PageParser
 		places_names = String.new
 		@places.each do |place|
 			places_names << ',' unless places_names.empty?
-			places_names << '("' << place[:name] << '","' << place[:phones].join(',') << '","' << place[:min_price] << '")'
+			places_names << '(' << place[:name].inspect << ',' << place[:phones].join(',').inspect << ',' << place[:min_price].inspect << ')'
 		end
 
 		@db.query ('INSERT IGNORE INTO cafes(name, phones, min_price) VALUES %s' % [places_names])
@@ -82,11 +82,11 @@ class PageParser
 	def insert_addresses()
 		addresses = String.new
 		@places.each do |place|
-			next if place[:id] == nil or place[:address] == nil
+			next if place[:id] == nil or place[:street] == nil or place[:building] == nil
 			addresses << ',' unless addresses.empty?
-			addresses << '(' << place[:id].to_s << ',"' << place[:address] << '")' 
+			addresses << '(' << place[:id].inspect << ',' << place[:street].inspect << ',' << place[:building].inspect << ')' 
 		end
-		@db.query "INSERT IGNORE INTO addresses (cafe_id, address) VALUES %s" % addresses unless addresses.empty?
+		@db.query "INSERT IGNORE INTO addresses (cafe_id, street, building) VALUES %s" % addresses unless addresses.empty?
 	end
 
 	protected
@@ -164,19 +164,15 @@ class GobarsParser
 		new_place[:types] = (types_id >= size) ? [] : blocks[types_id].text.strip.downcase.split(', ')
 
 		address = (address_id >= size) ? "" : blocks[address_id].text.strip.downcase
-		puts address
+
 		new_place[:address] = address
 
-		address = address.scan(/(?<=\,)([\s\S]+)/)[0][0]
-		building = address.scan(/(?<=\,)([\S\s]+)/)[0]
-		return if address == nil or building == nil
+		return if (address = address.scan(/(?<=\,)([\s\S]+)/)[0]) == nil or (address = address[0]) == nil
+		return if (building = address.scan(/(?<=\,)([\S\s]+)/)[0]) == nil or (building = building[0].scan(/[0-9]+[a-zA-Zа-яА-Я\/]{0,2}+/)[0]) == nil
 
 		new_place[:street] = address.scan(/(([\s\S][^\,])+)(?=\,)/)[0][0].strip
-		puts new_place[:street].inspect
+		new_place[:building] = building.strip.downcase
 
-		new_place[:building] = building[0].scan(/[0-9]+[a-zA-Zа-яА-Я\/]{0,2}+/)[0].strip
-
-		puts new_place[:building].inspect
 		new_place[:cuisins] = []
 
 		phones = blocks[phones_id].css('span') unless phones_id >= size or phones_id <= address_id
@@ -184,7 +180,7 @@ class GobarsParser
 
 		prices = place_data.text.strip.downcase.scan(/(?<=Счет\:)([\S\s]+)/)[0]
 		prices = prices[0].scan(/[0-9]+/) unless prices == nil
-		new_place[:min_price] = prices == nil ? nil : prices[0]
+		new_place[:min_price] = prices == nil ? "0" : prices[0]
 
 		places << new_place
 	end
