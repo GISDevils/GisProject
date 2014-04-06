@@ -112,30 +112,41 @@ class Resto74Parser
 	protected
 	def extract_place_data(places, place_data)
 		place_data.chomp!
+		new_place = Hash.new
 
-		name_arr = place_data.scan(/(^[^,]+)/)[0]
-		return if name_arr == nil
-		name = name_arr[0].strip
+		name = place_data.scan(/(^[^,]+)/)[0]
+		return if name == nil
+		new_place[:name] = name[0].strip
 
 		types = place_data.scan(/(?<=, )([\s\S]+)(?=Адрес:)/)[0]
 		return if types == nil
-		types = types[0].strip.downcase.split(', ')
+		new_place[:types] = types[0].strip.downcase.split(', ')
 
 		address = place_data.scan(/(?<=Адрес: )([\s\S]+)(?=Телефон:)/)[0]
 		return if address == nil
+		new_place[:address] = address[0]
 
-		street = ""
-		building = 0
+		address_list = address[0].split(',')
+		return if address_list.size < 2
+
+		street = address_list[0]
+		building = address_list[1].scan(/([0-9]+[a-zA-Zа-яА-Я\/]{0,2}+)/)[0]
+
+		return if street == nil or building == nil
+		new_place[:street] = street.strip
+		new_place[:building] = building[0].strip
 
 		phones_list = place_data.scan(/(?<=Телефон: )([\s\S]+)(?=Кухня:)/)[0]
 		return if phones_list == nil
-		phones = phones_list[0].gsub(':w', '').strip.downcase.split(', ')
+		new_place[:phones] = phones_list[0].gsub(':w', '').strip.downcase.split(', ')
 
 		cuisins_list = place_data.scan(/(?<=Кухня: )([A-Zа-я\,\s]*)/)[0]
 		return if cuisins_list == nil
-		cuisins = cuisins_list[0].strip.downcase.split(', ')
+		new_place[:cuisins] = cuisins_list[0].strip.downcase.split(', ')
 
-		places << {:name => name, :types => types, :phones => phones, :cuisins => cuisins, :address => address, :street => street, :building => building, :min_price => "0"}
+		new_place[:min_price] = "0"
+
+		places << new_place
 	end
 end
 
