@@ -65,17 +65,37 @@ class PageParser
 		places_names = String.new
 		@places.each do |place|
 			places_names << ',' unless places_names.empty?
-			places_names << '(' << place[:name].inspect << ',' << place[:phones].join(',').inspect << ',' << place[:min_price].inspect << ')'
+			places_names << '(' << place[:name].inspect << ')'
 		end
 
-		@db.query ('INSERT IGNORE INTO cafes(name, phones, min_price) VALUES %s' % [places_names])
-
-		ids = @db.query 'SELECT id, name FROM cafes WHERE (name, phones, min_price) IN (%s)' % [places_names]
+		@db.query 'INSERT IGNORE INTO cafes(name) VALUES %s' % [places_names]
+		ids = @db.query 'SELECT id, name FROM cafes WHERE (name) IN (%s)' % [places_names]
 		ids.each_hash do |id|
 			@places.select {|place| place[:name] == id['name']}.each do |place|
 				place[:id] = id['id']
 			end
 		end
+
+		ids = @db.query 'SELECT id FROM cafes WHERE name IN (%s) AND phones IS NULL' % [places_names]
+		update_phones = String.new
+		ids.each_hash do |id|
+			@places.select {|place| place[:id] == id['id']}.each do |place|
+				next if place[:phones] == nil or place[:phones].empty?
+				update_phones << "WHEN #{place[:id]} THEN #{place[:phones].join(',').inspect} "
+			end
+		end
+		@db.query 'UPDATE cafes SET phone = CASE id ' + update_phones + 'END WHEN name IN ' % [places_names] unless update_phones.empty?
+
+
+		ids = @db.query 'SELECT id FROM cafes WHERE name IN (%s) AND min_price IS NULL' % [places_names]
+		update_prices = String.new
+		ids.each_hash do |id|
+			@places.select {|place| place[:id] == id['id']}.each do |place|
+				next if place[:min_price] == nil or place[:min_price].empty?
+				update_prices << "WHEN #{place[:id]} THEN #{place[:min_price].inspect} "
+			end
+		end
+		@db.query 'UPDATE cafes SET min_price = CASE id ' + update_prices + 'END WHEN name IN ' % [places_names] unless update_prices.empty?
 	end
 
 	protected
