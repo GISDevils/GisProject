@@ -60,6 +60,18 @@ class PageParser
 		@db.query "INSERT IGNORE INTO #{table_name}(name) VALUES %s" % surround_values(values) unless values.empty?
 	end
 
+	def update_cafe_with(field, key, places_names)		
+		ids = @db.query 'SELECT id FROM cafes WHERE name IN (%s) AND %s IS NULL' % [places_names, field]
+		update_case = String.new
+		ids.each_hash do |id|
+			@places.select {|place| place[:id] == id['id']}.each do |place|
+				next if place[key] == nil or place[key].empty?
+				update_case << "WHEN #{place[:id]} THEN #{place[key].inspect} "
+			end
+		end
+		@db.query "UPDATE cafes SET #{field} = CASE id " + update_case + "END" unless update_case.empty?
+	end
+
 	protected
 	def insert_cafes()
 		places_names = String.new
@@ -76,26 +88,8 @@ class PageParser
 			end
 		end
 
-		ids = @db.query 'SELECT id FROM cafes WHERE name IN (%s) AND phones IS NULL' % [places_names]
-		update_phones = String.new
-		ids.each_hash do |id|
-			@places.select {|place| place[:id] == id['id']}.each do |place|
-				next if place[:phones] == nil or place[:phones].empty?
-				update_phones << "WHEN #{place[:id]} THEN #{place[:phones].join(',').inspect} "
-			end
-		end
-		@db.query 'UPDATE cafes SET phone = CASE id ' + update_phones + 'END WHEN name IN ' % [places_names] unless update_phones.empty?
-
-
-		ids = @db.query 'SELECT id FROM cafes WHERE name IN (%s) AND min_price IS NULL' % [places_names]
-		update_prices = String.new
-		ids.each_hash do |id|
-			@places.select {|place| place[:id] == id['id']}.each do |place|
-				next if place[:min_price] == nil or place[:min_price].empty?
-				update_prices << "WHEN #{place[:id]} THEN #{place[:min_price].inspect} "
-			end
-		end
-		@db.query 'UPDATE cafes SET min_price = CASE id ' + update_prices + 'END WHEN name IN ' % [places_names] unless update_prices.empty?
+		self.update_cafe_with('phones', :phones, places_names)
+		self.update_cafe_with('min_price', :min_price, places_names)
 	end
 
 	protected
@@ -155,14 +149,13 @@ class Resto74Parser
 		new_place[:building] = building[0].strip
 
 		phones_list = place_data.scan(/(?<=Телефон: )([\s\S]+)(?=Кухня:)/)[0]
-		return if phones_list == nil
-		new_place[:phones] = phones_list[0].gsub(':w', '').strip.downcase.split(', ')
+		new_place[:phones] = (phones_list != nil) ? phones_list[0].gsub(':w', '').strip.downcase : nil
 
 		cuisins_list = place_data.scan(/(?<=Кухня: )([A-Zа-я\,\s]*)/)[0]
 		return if cuisins_list == nil
 		new_place[:cuisins] = cuisins_list[0].strip.downcase.split(', ')
 
-		new_place[:min_price] = "0"
+		new_place[:min_price] = nil
 
 		places << new_place
 	end
@@ -203,11 +196,11 @@ class GobarsParser
 		new_place[:cuisins] = []
 
 		phones = blocks[phones_id].css('span') unless phones_id >= size or phones_id <= address_id
-		new_place[:phones] = (phones == nil or phones.empty?) ? [] : phones[0].text.strip.downcase.split(', ')
+		new_place[:phones] = (phones != nil and not phones.empty?) ? phones[0].text.strip.downcase : nil
 
 		prices = place_data.text.strip.downcase.scan(/(?<=Счет\:)([\S\s]+)/)[0]
 		prices = prices[0].scan(/[0-9]+/) unless prices == nil
-		new_place[:min_price] = prices == nil ? "0" : prices[0]
+		new_place[:min_price] = (prices != nil) ? prices[0] : nil
 
 		places << new_place
 	end
