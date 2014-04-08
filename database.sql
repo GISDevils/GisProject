@@ -1,7 +1,7 @@
 CREATE DATABASE gis;
 
-CREATE TABLE cafes (
-	id INT(10) PRIMARY KEY AUTO INCREMENT,
+CREATE TABLE gis.cafes (
+	id INT(10) PRIMARY KEY AUTO_INCREMENT,
 	name VARCHAR(50) NOT NULL,
 	phones VARCHAR(30),
 	min_price SMALLINT DEFAULT NULL,
@@ -9,7 +9,7 @@ CREATE TABLE cafes (
 	UNIQUE (name)
 );
 
-CREATE TABLE addresses (
+CREATE TABLE gis.addresses (
 	cafe_id INT(10) NOT NULL,
 	street VARCHAR(50) NOT NULL,
 	building SMALLINT NOT NULL,
@@ -19,21 +19,21 @@ CREATE TABLE addresses (
 	FOREIGN KEY (cafe_id) REFERENCES cafes(id)
 );
 
-CREATE TABLE cuisine_types (
-	id SMALLINT PRIMARY KEY AUTO INCREMENT,
+CREATE TABLE gis.cuisine_types (
+	id SMALLINT PRIMARY KEY AUTO_INCREMENT,
 	name VARCHAR(40) NOT NULL,
 
 	UNIQUE(name)
 );
 
-CREATE TABLE cafe_types (
-	id SMALLINT PRIMARY KEY AUTO INCREMENT,
+CREATE TABLE gis.cafe_types (
+	id SMALLINT PRIMARY KEY AUTO_INCREMENT,
 	name VARCHAR(20) NOT NULL,
 
 	UNIQUE(name)
 );
 
-CREATE TABLE cuisines (
+CREATE TABLE gis.cuisines (
 	cafe_id INT(10) NOT NULL,
 	cuisine_id SMALLINT NOT NULL,
 
@@ -43,7 +43,7 @@ CREATE TABLE cuisines (
 	FOREIGN KEY (cuisine_id) REFERENCES cuisine_types(id)
 );
 
-CREATE TABLE types (
+CREATE TABLE gis.types (
 	cafe_id INT(10) NOT NULL,
 	type_id SMALLINT NOT NULL,
 
