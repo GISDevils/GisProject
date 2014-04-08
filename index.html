@@ -51,6 +51,20 @@
                 drawingControl: false
               });
              drawingManager.setMap(map);
+
+             if(navigator.geolocation) 
+             {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                  var pos = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
+
+                  var infowindow = new google.maps.InfoWindow({
+                    map: map,
+                    position: pos,
+                    content: 'Location found.'
+                });
+
+                map.setCenter(pos);
+              }
       		}
 
           function drop() 
@@ -88,6 +102,9 @@
 		</iframe>
 		-->
     <div id="panel" style="margin-left: -52px">
+      <form id="data form">
+        <input id="send-data" type="submit" value="Search" />
+      </form>
       <button id="drop" onclick="drop()">Search Cafe</button>
       <button id="remap" onclick="remap()">Remap</button>
     </div>
