@@ -1,6 +1,8 @@
 #!/usr/bin/ruby
 # encoding: UTF-8
 
+require 'bundler/setup'
+
 require 'mysql'
 require 'rubygems'
 require 'nokogiri'
@@ -152,8 +154,7 @@ class Resto74Parser
 		new_place[:phones] = (phones_list != nil) ? phones_list[0].gsub(':w', '').strip.downcase : nil
 
 		cuisins_list = place_data.scan(/(?<=Кухня: )([A-Zа-я\,\s]*)/)[0]
-		return if cuisins_list == nil
-		new_place[:cuisins] = cuisins_list[0].strip.downcase.split(', ')
+		new_place[:cuisins] = (cuisins_list != nil) ? cuisins_list[0].strip.downcase.split(', ') : []
 
 		new_place[:min_price] = nil
 
@@ -183,10 +184,9 @@ class GobarsParser
 		address_id = 1
 		phones_id = size - 1
 
-		new_place[:types] = (types_id >= size) ? [] : blocks[types_id].text.strip.downcase.split(', ')
+		new_place[:types] = (types_id >= size) ? [] : blocks[types_id].text.downcase.strip.split(', ')
 
-		address = (address_id >= size) ? "" : blocks[address_id].text.strip.downcase
-
+		address = (address_id >= size) ? "" : blocks[address_id].text.strip
 		return if (address = address.scan(/(?<=\,)([\s\S]+)/)[0]) == nil or (address = address[0]) == nil
 		return if (building = address.scan(/(?<=\,)([\S\s]+)/)[0]) == nil or (building = building[0].scan(/[0-9]+[a-zA-Zа-яА-Я\/]{0,2}+/)[0]) == nil
 
@@ -196,9 +196,9 @@ class GobarsParser
 		new_place[:cuisins] = []
 
 		phones = blocks[phones_id].css('span') unless phones_id >= size or phones_id <= address_id
-		new_place[:phones] = (phones != nil and not phones.empty?) ? phones[0].text.strip.downcase : nil
+		new_place[:phones] = (phones != nil and not phones.empty?) ? phones[0].text.downcase.strip : nil
 
-		prices = place_data.text.strip.downcase.scan(/(?<=Счет\:)([\S\s]+)/)[0]
+		prices = place_data.text.downcase.strip.scan(/(?<=Счет\:)([\S\s]+)/)[0]
 		prices = prices[0].scan(/[0-9]+/) unless prices == nil
 		new_place[:min_price] = (prices != nil) ? prices[0] : nil
 
