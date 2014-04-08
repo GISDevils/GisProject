@@ -3,7 +3,7 @@ install:
   - bundle install
 
 before_script:
-  - mysql -e ./database.sql
+  - mysql --user='travis' --password='' < ./database.sql
 
 language: ruby
 rvm:
