@@ -1,0 +1,12 @@
+# .travis.yml
+install:
+  - bundle install
+
+before_script:
+  - mysql --user='travis' --password='' < ./database.sql
+
+language: ruby
+rvm:
+  - 1.9.3
+
+script: bundle
