@@ -7,6 +7,7 @@ require 'mysql'
 require 'rubygems'
 require 'nokogiri'
 require 'open-uri'
+require 'json'
 
 require_relative 'secrets'
 
@@ -206,6 +207,31 @@ class GobarsParser
 	end
 end
 
+def update_geolocations database
+	uri = "http://maps.googleapis.com/maps/api/geocode/json?sensor=false&region=RU&address=%s"
+
+	addresses = database.query 'SELECT cafe_id, street, building FROM addresses'
+
+	addresses.each_hash do |address|
+		cafe_id = address['cafe_id']
+		street = address['street'].force_encoding("utf-8")
+		building = address['building'].force_encoding("utf-8")
+
+		rest_query = URI::escape(uri % "Chelyabinsk,#{street},#{building}")
+
+		geodata = open rest_query 
+		json = JSON.parse geodata.string
+
+		next if json['status'] != 'OK'
+		coords = json['results'][0]['geometry']['viewport']['northeast']
+
+		longitude = coords['lng']
+		latitude = coords['lat']
+
+		database.query "UPDATE addresses SET longitude = #{longitude}, latitude = #{latitude} WHERE cafe_id = #{cafe_id} AND street = #{street.inspect} AND building = #{building.inspect}"
+	end
+end
+
 begin
 	sites = [
 		{:uri => 'http://chel.gobars.ru/bars/page_%i.html', :num => 6, :parser => GobarsParser},
@@ -221,5 +247,6 @@ begin
 		parser.proceed
 	end
 
+	update_geolocations db
 	db.close if db
 end

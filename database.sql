@@ -13,6 +13,8 @@ CREATE TABLE gis.addresses (
 	cafe_id INT(10) NOT NULL,
 	street VARCHAR(50) NOT NULL,
 	building SMALLINT NOT NULL,
+	latitude DECIMAL(18, 16) DEFAULT NULL,
+	longtitude DECIMAL(18, 16) DEFAULT NULL,
 
 	UNIQUE(cafe_id, street, building),
 
