@@ -23,6 +23,27 @@
     	</script>
     	<script type="text/javascript">
 
+          //client-server interaction
+          var xmlHttp = new XMLHttpRequest();
+          xmlHttp.open( "GET", "", true);
+          xmlHttp.onreadystatechange = function() {
+            if (xmlHttp.readyState !== 4) return;
+            if (xmlHttp.status == 200)
+            {
+              alert("All right");
+            }
+            else
+            {
+              alert("Server error");
+            }
+          };
+         // xmlHttp.send(null):
+
+         function sendRequest() 
+         {
+         };
+
+
           var neighborhoods = 
           [
             new google.maps.LatLng(52.511467, 13.447179),
@@ -52,19 +73,20 @@
               });
              drawingManager.setMap(map);
 
-             if(navigator.geolocation) 
+            /* if(navigator.geolocation) 
              {
                 navigator.geolocation.getCurrentPosition(function(position) {
                   var pos = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
 
                   var infowindow = new google.maps.InfoWindow({
-                    map: map,
+                  map: map,
                     position: pos,
                     content: 'Location found.'
+                
                 });
 
                 map.setCenter(pos);
-              }
+              } */
       		}
 
           function drop() 
@@ -90,6 +112,7 @@
           }
 
       		google.maps.event.addDomListener(window, 'load', initialize);
+
     	</script>
 	</head>
 	<body>
@@ -103,7 +126,10 @@
 		-->
     <div id="panel" style="margin-left: -52px">
       <form id="data form">
-        <input id="send-data" type="submit" value="Search" />
+        <b>Start: </b>
+        <select id="start" onchange="calcRoute();">
+          <option value="current location">Current Location</option>
+        </select>
       </form>
       <button id="drop" onclick="drop()">Search Cafe</button>
       <button id="remap" onclick="remap()">Remap</button>
