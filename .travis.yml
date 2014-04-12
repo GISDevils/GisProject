@@ -1,6 +1,8 @@
-language: cpp
-compiler:
-  - gcc
-  - clang
-# TODO: change
-script: ./configure && make
+# .travis.yml
+install:
+  - bundle install
+
+before_script:
+  - mysql --user='travis' --password='' < ./database.sql
+
+script: ruby ./parser.rb
