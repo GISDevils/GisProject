@@ -3,6 +3,6 @@ install:
   - bundle install
 
 before_script:
-  - mysql --user='travis' --password='' < ./database.sql
+  - mysql --user='travis' --password='' < ./database/database.sql
 
-script: ruby ./parser.rb
+script: ruby ./database/parser.rb
