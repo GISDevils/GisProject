@@ -16,7 +16,7 @@ class Cafe(models.Model):
     id = models.IntegerField(primary_key=True)
     name = models.CharField(max_length=50L, unique=True)
     phones = models.CharField(max_length=30L, blank=True)
-    min_price = models.IntegerField(null=True, blank=True)
+    avg_price = models.IntegerField(null=True, blank=True)
 
     class Meta:
         db_table = 'cafes'

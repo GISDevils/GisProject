@@ -7,7 +7,7 @@ from GIS.cafe.models import Address, Cafe
 class CafeSerializer(ModelSerializer):
     class Meta:
         model = Cafe
-        fields = ['name', 'phones', 'min_price', 'cuisines', 'types']
+        fields = ['name', 'phones', 'avg_price', 'cuisines', 'types']
 
     cuisines = RelatedField(many=True)
     types = RelatedField(many=True)

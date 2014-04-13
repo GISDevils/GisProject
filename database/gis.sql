@@ -308,7 +308,7 @@ CREATE TABLE IF NOT EXISTS `cafes` (
   `id` int(10) NOT NULL AUTO_INCREMENT,
   `name` varchar(50) NOT NULL,
   `phones` varchar(30) DEFAULT NULL,
-  `min_price` smallint(6) DEFAULT NULL,
+  `avg_price` smallint(6) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `name` (`name`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=12844 ;
@@ -317,7 +317,7 @@ CREATE TABLE IF NOT EXISTS `cafes` (
 -- Dumping data for table `cafes`
 --
 
-INSERT INTO `cafes` (`id`, `name`, `phones`, `min_price`) VALUES
+INSERT INTO `cafes` (`id`, `name`, `phones`, `avg_price`) VALUES
 (11692, 'Abyss', NULL, NULL),
 (11693, 'Bad Gastein', NULL, NULL),
 (11694, 'Belfast', NULL, NULL),

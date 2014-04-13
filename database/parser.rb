@@ -92,7 +92,7 @@ class PageParser
 		end
 
 		self.update_cafe_with('phones', :phones, places_names)
-		self.update_cafe_with('min_price', :min_price, places_names)
+		self.update_cafe_with('avg_price', :avg_price, places_names)
 	end
 
 	protected
@@ -157,7 +157,7 @@ class Resto74Parser
 		cuisins_list = place_data.scan(/(?<=Кухня: )([A-Zа-я\,\s]*)/)[0]
 		new_place[:cuisins] = (cuisins_list != nil) ? cuisins_list[0].strip.downcase.split(', ') : []
 
-		new_place[:min_price] = nil
+		new_place[:avg_price] = nil
 
 		places << new_place
 	end
@@ -201,7 +201,7 @@ class GobarsParser
 
 		prices = place_data.text.downcase.strip.scan(/(?<=Счет\:)([\S\s]+)/)[0]
 		prices = prices[0].scan(/[0-9]+/) unless prices == nil
-		new_place[:min_price] = (prices != nil) ? prices[0] : nil
+		new_place[:avg_price] = (prices != nil) ? prices[0] : nil
 
 		places << new_place
 	end
