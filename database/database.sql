@@ -11,6 +11,7 @@ CREATE TABLE gis.cafes (
 );
 
 CREATE TABLE gis.addresses (
+	id INT(10) PRIMARY KEY AUTO_INCREMENT,
 	cafe_id INT(10) NOT NULL,
 	street VARCHAR(50) NOT NULL,
 	building SMALLINT NOT NULL,
