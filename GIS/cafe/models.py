@@ -42,17 +42,22 @@ class CuisineType(models.Model):
 
 
 class Cuisine(models.Model):
-    cafe = models.ForeignKey(Cafe)
+    cafe = models.ForeignKey(Cafe, related_name='cuisines')
     cuisine = models.ForeignKey(CuisineType)
 
     class Meta:
         db_table = 'cuisines'
 
+    def __unicode__(self):
+        return '%s' % self.cuisine.name
+
 
 class Type(models.Model):
-    cafe = models.ForeignKey(Cafe)
+    cafe = models.ForeignKey(Cafe, related_name='types')
     type = models.ForeignKey(CafeType)
 
     class Meta:
         db_table = 'types'
 
+    def __unicode__(self):
+        return '%s' % self.type.name

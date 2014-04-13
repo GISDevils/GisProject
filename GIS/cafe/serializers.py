@@ -1,17 +1,22 @@
 # -*- coding: utf-8 -*-
-from rest_framework.serializers import Serializer
+from rest_framework.relations import RelatedField
+from rest_framework.serializers import ModelSerializer
 from GIS.cafe.models import Address, Cafe
 
 
-class CafeSerializer(Serializer):
-    class Meta(Serializer.Meta):
+class CafeSerializer(ModelSerializer):
+    class Meta:
         model = Cafe
+        fields = ['name', 'phones', 'min_price', 'cuisines', 'types']
+
+    cuisines = RelatedField(many=True)
+    types = RelatedField(many=True)
+
+
+class AddressSerializer(ModelSerializer):
+    class Meta:
+        model = Address
         exclude = ['id']
 
-
-class AddressSerializer(Serializer):
-    class Meta(Serializer.Meta):
-        model = Address
-        exclude = ['cafe', 'id']
-
     cafe = CafeSerializer()
+
