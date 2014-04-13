@@ -29,14 +29,14 @@ CREATE TABLE gis.addresses (
 );
 
 CREATE TABLE gis.cuisine_types (
-	id SMALLINT PRIMARY KEY AUTO_INCREMENT,
+	id INT(10) PRIMARY KEY AUTO_INCREMENT,
 	name VARCHAR(40) NOT NULL,
 
 	UNIQUE(name)
 );
 
 CREATE TABLE gis.cafe_types (
-	id SMALLINT PRIMARY KEY AUTO_INCREMENT,
+	id INT(10) PRIMARY KEY AUTO_INCREMENT,
 	name VARCHAR(20) NOT NULL,
 
 	UNIQUE(name)
@@ -44,7 +44,7 @@ CREATE TABLE gis.cafe_types (
 
 CREATE TABLE gis.cuisines (
 	cafe_id INT(10) NOT NULL,
-	cuisine_id SMALLINT NOT NULL,
+	cuisine_id INT(10) NOT NULL,
 
 	UNIQUE(cafe_id, cuisine_id),
 
@@ -54,7 +54,7 @@ CREATE TABLE gis.cuisines (
 
 CREATE TABLE gis.types (
 	cafe_id INT(10) NOT NULL,
-	type_id SMALLINT NOT NULL,
+	type_id INT(10) NOT NULL,
 
 	UNIQUE(cafe_id, type_id),
 
