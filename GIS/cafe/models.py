@@ -4,18 +4,7 @@ from __future__ import unicode_literals
 from django.db import models
 
 
-class Addresses(models.Model):
-    cafe = models.ForeignKey('Cafes')
-    street = models.CharField(max_length=50L)
-    building = models.IntegerField()
-    latitude = models.DecimalField(null=True, max_digits=20, decimal_places=16, blank=True)
-    longitude = models.DecimalField(null=True, max_digits=20, decimal_places=16, blank=True)
-
-    class Meta:
-        db_table = 'addresses'
-
-
-class CafeTypes(models.Model):
+class CafeType(models.Model):
     id = models.IntegerField(primary_key=True)
     name = models.CharField(max_length=20L, unique=True)
 
@@ -23,7 +12,7 @@ class CafeTypes(models.Model):
         db_table = 'cafe_types'
 
 
-class Cafes(models.Model):
+class Cafe(models.Model):
     id = models.IntegerField(primary_key=True)
     name = models.CharField(max_length=50L, unique=True)
     phones = models.CharField(max_length=30L, blank=True)
@@ -33,7 +22,18 @@ class Cafes(models.Model):
         db_table = 'cafes'
 
 
-class CuisineTypes(models.Model):
+class Address(models.Model):
+    cafe = models.ForeignKey(Cafe)
+    street = models.CharField(max_length=50L)
+    building = models.IntegerField()
+    latitude = models.DecimalField(null=True, max_digits=20, decimal_places=16, blank=True)
+    longitude = models.DecimalField(null=True, max_digits=20, decimal_places=16, blank=True)
+
+    class Meta:
+        db_table = 'addresses'
+
+
+class CuisineType(models.Model):
     id = models.IntegerField(primary_key=True)
     name = models.CharField(max_length=40L, unique=True)
 
@@ -41,17 +41,17 @@ class CuisineTypes(models.Model):
         db_table = 'cuisine_types'
 
 
-class Cuisines(models.Model):
-    cafe = models.ForeignKey(Cafes)
-    cuisine = models.ForeignKey(CuisineTypes)
+class Cuisine(models.Model):
+    cafe = models.ForeignKey('Cafes')
+    cuisine = models.ForeignKey(CuisineType)
 
     class Meta:
         db_table = 'cuisines'
 
 
-class Types(models.Model):
-    cafe = models.ForeignKey(Cafes)
-    type = models.ForeignKey(CafeTypes)
+class Type(models.Model):
+    cafe = models.ForeignKey(Cafe)
+    type = models.ForeignKey(CafeType)
 
     class Meta:
         db_table = 'types'
