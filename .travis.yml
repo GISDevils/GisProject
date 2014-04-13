@@ -1,4 +1,9 @@
 # .travis.yml
+branches:
+  only:
+    - master
+    - backend  # FIXME remove at merging.
+
 install:
   - bundle install
 
