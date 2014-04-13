@@ -1,5 +1,11 @@
--- FIXME file exists for correct travis integration
-CREATE DATABASE gis;
+DROP DATABASE IF EXISTS `gis`;
+CREATE DATABASE `gis`;
+
+USE 'mysql';
+GRANT ALL PRIVILEGES ON gis.* TO 'gis_user'@'localhost' IDENTIFIED BY 'qwerty'
+
+WITH GRANT OPTION;
+FLUSH PRIVILEGES;
 
 CREATE TABLE gis.cafes (
 	id INT(10) PRIMARY KEY AUTO_INCREMENT,
