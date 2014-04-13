@@ -73,13 +73,13 @@ class PageParser
 
 			name = place[:name]
 			phones = place[:phones]
-			min_price = place[:min_price]
+			avg_price = place[:avg_price]
 
 			places_names << '(' << name.inspect << ')'
-			places_values << '(' << name.inspect << ',' << (phones.nil? ? 'NULL' : phones.inspect)  << ',' << (min_price.nil? ? 'NULL' : min_price) << ')'
+			places_values << '(' << name.inspect << ',' << (phones.nil? ? 'NULL' : phones.inspect)  << ',' << (avg_price.nil? ? 'NULL' : avg_price) << ')'
 		end 
 
-		@db.query 'INSERT INTO cafes(name, phones, min_price) VALUES %s ON DUPLICATE KEY UPDATE phones = COALESCE(cafes.phones, VALUES(phones)), min_price = COALESCE(cafes.min_price, VALUES(min_price))' % [places_values]
+		@db.query 'INSERT INTO cafes(name, phones, avg_price) VALUES %s ON DUPLICATE KEY UPDATE phones = COALESCE(cafes.phones, VALUES(phones)), avg_price = COALESCE(cafes.avg_price, VALUES(avg_price))' % [places_values]
 		ids = @db.query 'SELECT id, name FROM cafes WHERE (name) IN (%s)' % [places_names]
 		ids.each_hash do |id|
 			@places.select {|place| place[:name] == id['name'].force_encoding('utf-8')}.each do |place|
@@ -150,7 +150,7 @@ class Resto74Parser
 		cuisins_list = place_data.scan(/(?<=Кухня: )([A-Zа-я\,\s]*)/)[0]
 		new_place[:cuisins] = (cuisins_list != nil) ? cuisins_list[0].strip.downcase.split(', ') : []
 
-		new_place[:min_price] = nil
+		new_place[:avg_price] = nil
 
 		places << new_place
 	end
@@ -194,7 +194,7 @@ class GobarsParser
 
 		prices = place_data.text.downcase.strip.scan(/(?<=Счет\:)([\S\s]+)/)[0]
 		prices = prices[0].scan(/[0-9]+/) unless prices == nil
-		new_place[:min_price] = (prices != nil) ? prices[0] : nil
+		new_place[:avg_price] = (prices != nil) ? prices[0] : nil
 
 		places << new_place
 	end
