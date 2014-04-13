@@ -27,7 +27,7 @@ SET time_zone = "+00:00";
 --
 
 CREATE TABLE IF NOT EXISTS `addresses` (
-    `id` int(10) NOT NULL AUTO_INCREMENT,
+  `id` int(10) NOT NULL AUTO_INCREMENT,
   `cafe_id` int(10) NOT NULL,
   `street` varchar(50) DEFAULT NULL,
   `building` varchar(10) DEFAULT NULL,
@@ -878,8 +878,10 @@ INSERT INTO `cafe_types` (`id`, `name`) VALUES
 --
 
 CREATE TABLE IF NOT EXISTS `cuisines` (
+  `id` int(10) NOT NULL AUTO_INCREMENT,
   `cafe_id` int(10) NOT NULL,
   `cuisine_id` smallint(6) NOT NULL,
+  PRIMARY KEY (`id`),
   UNIQUE KEY `cafe_id` (`cafe_id`,`cuisine_id`),
   KEY `cuisine_id` (`cuisine_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -1248,9 +1250,11 @@ INSERT INTO `cuisine_types` (`id`, `name`) VALUES
 --
 
 CREATE TABLE IF NOT EXISTS `types` (
+  `id` int(10) NOT NULL AUTO_INCREMENT,
   `cafe_id` int(10) NOT NULL,
   `type_id` smallint(6) NOT NULL,
   UNIQUE KEY `cafe_id` (`cafe_id`,`type_id`),
+  PRIMARY KEY (`id`),
   KEY `type_id` (`type_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 

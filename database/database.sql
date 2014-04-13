@@ -38,6 +38,7 @@ CREATE TABLE gis.cafe_types (
 );
 
 CREATE TABLE gis.cuisines (
+	id INT(10) PRIMARY KEY AUTO_INCREMENT,
 	cafe_id INT(10) NOT NULL,
 	cuisine_id SMALLINT NOT NULL,
 
@@ -48,6 +49,7 @@ CREATE TABLE gis.cuisines (
 );
 
 CREATE TABLE gis.types (
+	id INT(10) PRIMARY KEY AUTO_INCREMENT,
 	cafe_id INT(10) NOT NULL,
 	type_id SMALLINT NOT NULL,
 
