@@ -24,25 +24,31 @@
     	<script type="text/javascript">
 
           //client-server interaction
-          var xmlHttp = new XMLHttpRequest();
-          xmlHttp.open( "GET", "", true);
-          xmlHttp.onreadystatechange = function() {
-            if (xmlHttp.readyState !== 4) return;
-            if (xmlHttp.status == 200)
-            {
-              alert("All right");
-            }
-            else
-            {
-              alert("Server error");
-            }
+          function sendHttpRequest(url, success, failure)
+          {
+            var request = makeHttpObject();
+            request.open("GET", url, true);
+            request.send(null);
+            request.onreadystatechange = function() {
+              if (request.readyState == 4)
+              {
+                if (request.status == 200)
+                  success(request.responseText);
+                else if (failure)
+                  failure (request.status, request.statusText);
+              }
+            };
           };
-         // xmlHttp.send(null):
 
-         function sendRequest() 
-         {
-         };
+          function submit()
+          {
+            var price = document.getElementById('price').value;
+            var distance = document.getElementById('distance').value;
+            var cuisine = document.getElementById('cuisine').value;
+            var type = document.getElementById('type').value;
 
+            sendHttpRequest("some_server\?price=" + price + "&distance=" + distance + "&cuisine=" + cuisine, success);
+          };
 
           var neighborhoods = 
           [
@@ -126,11 +132,21 @@
 		-->
     <div id="panel" style="margin-left: -52px">
       <form id="data form">
-        <b>Start: </b>
-        <select id="start" onchange="calcRoute();">
+        <b>Price:</b>
+        <input id="price" type="text">
+        <b>Distance</b>
+        <input id="distance" type="text">
+        <br />
+        <b>Cuisine</b>
+        <input id="cuisine" type="text">
+        <b>Type</b>
+        <input id="type" type="text">
+        <!--<input type="submit" onclick="submit()"> -->
+        <!--<select id="start" onchange="calcRoute();">
           <option value="current location">Current Location</option>
-        </select>
+        </select> -->
       </form>
+      <button id="sendRequest" onclick="submit()">Search for Cafe</button>
       <button id="drop" onclick="drop()">Search Cafe</button>
       <button id="remap" onclick="remap()">Remap</button>
     </div>
