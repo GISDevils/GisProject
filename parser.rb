@@ -63,16 +63,15 @@ class PageParser
 		@db.query "INSERT IGNORE INTO #{table_name}(name) VALUES %s" % surround_values(values) unless values.empty?
 	end
 
-	def update_cafe_with(field, key, places_names)		
+	def update_cafe_with(field, key, places_names)
 		ids = @db.query 'SELECT id FROM cafes WHERE name IN (%s) AND %s IS NULL' % [places_names, field]
 		update_case = String.new
 		ids.each_hash do |id|
 			@places.select {|place| place[:id] == id['id']}.each do |place|
-				next if place[key] == nil or place[key].empty?
-				update_case << "WHEN #{place[:id]} THEN #{place[key].inspect} "
+				update_case << "WHEN #{place[:id]} THEN #{place[key].inspect} " unless place[key] == nil or place[key].empty?
 			end
 		end
-		@db.query "UPDATE cafes SET #{field} = CASE id " + update_case + "END" unless update_case.empty?
+		@db.query "UPDATE cafes SET #{field} = CASE id %s END WHERE name IN (%s) AND %s IS NULL" % [update_case, places_names, field] unless update_case.empty?
 	end
 
 	protected
@@ -80,13 +79,14 @@ class PageParser
 		places_names = String.new
 		@places.each do |place|
 			places_names << ',' unless places_names.empty?
+
 			places_names << '(' << place[:name].inspect << ')'
 		end
 
 		@db.query 'INSERT IGNORE INTO cafes(name) VALUES %s' % [places_names]
 		ids = @db.query 'SELECT id, name FROM cafes WHERE (name) IN (%s)' % [places_names]
 		ids.each_hash do |id|
-			@places.select {|place| place[:name] == id['name']}.each do |place|
+			@places.select {|place| place[:name] == id['name'].force_encoding('utf-8')}.each do |place|
 				place[:id] = id['id']
 			end
 		end
