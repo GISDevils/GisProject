@@ -63,36 +63,29 @@ class PageParser
 		@db.query "INSERT IGNORE INTO #{table_name}(name) VALUES %s" % surround_values(values) unless values.empty?
 	end
 
-	def update_cafe_with(field, key, places_names)
-		ids = @db.query 'SELECT id FROM cafes WHERE name IN (%s) AND %s IS NULL' % [places_names, field]
-		update_case = String.new
-		ids.each_hash do |id|
-			@places.select {|place| place[:id] == id['id']}.each do |place|
-				update_case << "WHEN #{place[:id]} THEN #{place[key].inspect} " unless place[key] == nil or place[key].empty?
-			end
-		end
-		@db.query "UPDATE cafes SET #{field} = CASE id %s END WHERE name IN (%s) AND %s IS NULL" % [update_case, places_names, field] unless update_case.empty?
-	end
-
 	protected
 	def insert_cafes()
 		places_names = String.new
+		places_values = String.new
 		@places.each do |place|
 			places_names << ',' unless places_names.empty?
+			places_values << ',' unless places_values.empty?
 
-			places_names << '(' << place[:name].inspect << ')'
-		end
+			name = place[:name]
+			phones = place[:phones]
+			min_price = place[:min_price]
 
-		@db.query 'INSERT IGNORE INTO cafes(name) VALUES %s' % [places_names]
+			places_names << '(' << name.inspect << ')'
+			places_values << '(' << name.inspect << ',' << (phones.nil? ? 'NULL' : phones.inspect)  << ',' << (min_price.nil? ? 'NULL' : min_price) << ')'
+		end 
+
+		@db.query 'INSERT INTO cafes(name, phones, min_price) VALUES %s ON DUPLICATE KEY UPDATE phones = COALESCE(cafes.phones, VALUES(phones)), min_price = COALESCE(cafes.min_price, VALUES(min_price))' % [places_values]
 		ids = @db.query 'SELECT id, name FROM cafes WHERE (name) IN (%s)' % [places_names]
 		ids.each_hash do |id|
 			@places.select {|place| place[:name] == id['name'].force_encoding('utf-8')}.each do |place|
 				place[:id] = id['id']
 			end
 		end
-
-		self.update_cafe_with('phones', :phones, places_names)
-		self.update_cafe_with('min_price', :min_price, places_names)
 	end
 
 	protected
