@@ -42,7 +42,7 @@ class CuisineType(models.Model):
 
 
 class Cuisine(models.Model):
-    cafe = models.ForeignKey('Cafes')
+    cafe = models.ForeignKey(Cafe)
     cuisine = models.ForeignKey(CuisineType)
 
     class Meta:
