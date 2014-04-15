@@ -11,7 +11,7 @@ require 'json'
 
 require_relative 'secrets'
 
-def extract_unique_values(hash_array, key)
+def extract_unique_values hash_array, key
 	values = Array.new
 	hash_array.map do |hash|
 		values << (Array.new << hash[key])
@@ -19,7 +19,7 @@ def extract_unique_values(hash_array, key)
 	return values.flatten.uniq
 end
  
-def surround_values(values)
+def surround_values values
 	surrounded_values = String.new
 	values.each do |value|
 		surrounded_values << ',' unless surrounded_values.empty?
@@ -28,7 +28,7 @@ def surround_values(values)
 	return surrounded_values
 end
  
-def quote_values(values)
+def quote_values values
 	quoted_values = String.new
 	values.each do |value|
 		quoted_values << ',' unless quoted_values.empty?
@@ -38,12 +38,12 @@ def quote_values(values)
 end
 
 class PageParser
-	def initialize(db, site)
+	def initialize db, site
 		@db = db
 		@site = site
 	end
 
-	def proceed()
+	def proceed
 		@site[:num].times do |i|
 			page = Nokogiri::HTML(open(@site[:uri] % i))
 			@places = @site[:parser].new.parse(page)
@@ -58,13 +58,13 @@ class PageParser
 	end
 
 	protected
-	def insert_values(key, table_name)
+	def insert_values key, table_name
 		values = extract_unique_values(@places, key)
 		@db.query "INSERT IGNORE INTO #{table_name}(name) VALUES %s" % surround_values(values) unless values.empty?
 	end
 
 	protected
-	def insert_cafes()
+	def insert_cafes
 		places_names = String.new
 		places_values = String.new
 		@places.each do |place|
@@ -89,7 +89,7 @@ class PageParser
 	end
 
 	protected
-	def insert_addresses()
+	def insert_addresses
 		addresses = String.new
 		@places.each do |place|
 			next if place[:id] == nil or place[:street] == nil or place[:building] == nil
@@ -110,7 +110,7 @@ class PageParser
 end
 
 class Resto74Parser
-	def parse(data)
+	def parse data
 		page = data.css('div.text').text.tr("\t",'').split(/\n/).uniq
 		places = Array.new
 		page.each do |place|
@@ -120,7 +120,7 @@ class Resto74Parser
 	end
 
 	protected
-	def extract_place_data(places, place_data)
+	def extract_place_data places, place_data
 		place_data.chomp!
 		new_place = Hash.new
 
@@ -157,7 +157,7 @@ class Resto74Parser
 end
 
 class GobarsParser
-	def parse(data)
+	def parse data
 		places = Array.new
 		data.css('div.kb_text').each do |bar_data|
 			extract_place_data(places, bar_data)
@@ -166,7 +166,7 @@ class GobarsParser
 	end
 
 	protected
-	def extract_place_data(places, place_data)
+	def extract_place_data places, place_data 
 		new_place = Hash.new
 		new_place[:name] = place_data.css('a').text
 
@@ -200,6 +200,16 @@ class GobarsParser
 	end
 end
 
+def generate_prices db
+	prices = String.new
+	db.query('SELECT id FROM cafes WHERE avg_price IS NULL').each_hash do |row|
+		cafe_id = row['id']
+		prices << ',' unless prices.empty?
+		prices << '(' << cafe_id << ',' << ([*1..5].sample * 100).to_s << ')'
+	end
+	db.query 'INSERT INTO cafes(id, avg_price) VALUES %s ON DUPLICATE KEY UPDATE avg_price = VALUES(avg_price)' % [prices] unless prices.empty?
+end
+
 def update_geolocations database
 	uri = "http://maps.googleapis.com/maps/api/geocode/json?sensor=false&region=RU&address=%s"
 
@@ -231,15 +241,21 @@ begin
 		{:uri => 'http://www.resto74.ru/items/%i', :num => 33, :parser => Resto74Parser},
 	]
 
-	db = Mysql.init
-	db.options(Mysql::SET_CHARSET_NAME, 'utf8')
-	db.real_connect('localhost', DB_USER, DB_PASSWORD, DB_NAME)
+	begin
+		db = Mysql.init
+		db.options(Mysql::SET_CHARSET_NAME, 'utf8')
+		db.real_connect('localhost', DB_USER, DB_PASSWORD, DB_NAME)
 
-	sites.each do |site|
-		parser = PageParser.new(db, site)
-		parser.proceed
+		generate_prices(db)
+		update_geolocations db
+		sites.each do |site|
+			parser = PageParser.new(db, site)
+			parser.proceed
+		end	
+	rescue Mysql::Error => e
+		puts e.message
+		puts e.backtrace
+	ensure
+		db.close if db	
 	end
-
-	update_geolocations db
-	db.close if db
 end
