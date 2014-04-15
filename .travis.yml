@@ -4,6 +4,14 @@ branches:
     - master
     - openshift  # FIXME remove at merging.
 
+deploy:
+  provider: openshift
+  user: "d.yantsen@gmail.com"
+  password: "iHowO01n1F"
+  domain: "vmigisdevils"
+  app: "cafegis"
+  on: openshift
+
 language: python
 
 before_script:
