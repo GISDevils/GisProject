@@ -20,7 +20,7 @@ class AddressFilterBackend(BaseFilterBackend):
                 max_distance = serializer.object['distance']
                 for address in queryset:
                     if self.get_distance(current_location, address.latitude, address.longitude) > max_distance:
-                        queryset = queryset.exclude(cafe=address.cafe)
+                        queryset = queryset.exclude(id=address.id)
             if serializer.object.get('max_price', None):
                 queryset = queryset.filter(
                     cafe__in=Cafe.objects.filter(avg_price__lte=serializer.object['max_price']))
