@@ -25,7 +25,7 @@ class Cafe(models.Model):
 class Address(models.Model):
     cafe = models.ForeignKey(Cafe)
     street = models.CharField(max_length=50L)
-    building = models.IntegerField()
+    building = models.CharField(max_length=10L)
     latitude = models.DecimalField(null=True, max_digits=20, decimal_places=16, blank=True)
     longitude = models.DecimalField(null=True, max_digits=20, decimal_places=16, blank=True)
 
