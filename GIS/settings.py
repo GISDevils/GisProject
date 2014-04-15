@@ -1,6 +1,4 @@
 # Django settings for GIS project.
-from GIS import openshiftlibs
-
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
@@ -118,6 +116,7 @@ DEFAULT_KEYS = {'SECRET_KEY': '%6e!q!!*+4u=m4+!q#5=zw5e3x!v+2_yclz48uyxs5#_-@grb
 
 if ON_OPENSHIFT:
     imp.find_module('openshiftlibs')
+    from GIS import openshiftlibs
     use_keys = openshiftlibs.openshift_secure(DEFAULT_KEYS)
 
 # List of callables that know how to import templates from various sources.
