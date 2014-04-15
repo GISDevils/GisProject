@@ -6,11 +6,14 @@ branches:
 
 deploy:
   provider: openshift
-  user: "d.yantsen@gmail.com"
-  password: "iHowO01n1F"
-  domain: "vmigisdevils"
-  app: "cafegis"
-  on: openshift
+  user: d.yantsen@gmail.com
+  password:
+    secure: S7AKoTe3TGeDJ2ffUwy18jbWoTEX47ZOC95KQgOKny3OYjUvESqje80SfBduyVxiLPJsZILIL/8IluhBuJ+zBbcM/DGDPS9y/rOLoCF1B9JWxSS2xccD6EgEOWTIS0c/yzPb3kGw+kqLa0qi9Oq4bIs671+S6EEkxQSkAyZkIfw=
+  app: cafegis
+  domain: vmigisdevils
+  on:
+    repo: GISDevils/GisProject
+    branch: openshift
 
 language: python
 
