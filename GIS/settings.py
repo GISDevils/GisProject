@@ -1,9 +1,4 @@
 # Django settings for GIS project.
-
-import os
-
-PROJECT_DIR = os.path.dirname(os.path.realpath(__file__))
-
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
@@ -13,12 +8,14 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
+import os
 import imp
 
 ON_OPENSHIFT = False
 if os.environ.has_key('OPENSHIFT_REPO_DIR'):
     ON_OPENSHIFT = True
 
+PROJECT_DIR = os.path.dirname(os.path.realpath(__file__))
 if ON_OPENSHIFT:
     DEBUG = bool(os.environ.get('DEBUG', False))
     if DEBUG:
@@ -35,8 +32,8 @@ if ON_OPENSHIFT:
             'PASSWORD': os.environ['OPENSHIFT_MYSQL_DB_PASSWORD'],
             'HOST': os.environ['OPENSHIFT_MYSQL_DB_HOST'],
             'PORT': os.environ['OPENSHIFT_MYSQL_DB_PORT']
-        }
     }
+}
 else:
     DATABASES = {
         'default': {
@@ -52,7 +49,9 @@ else:
 
 # Hosts/domain names that are valid for this site; required if DEBUG is False
 # See https://docs.djangoproject.com/en/1.5/ref/settings/#allowed-hosts
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    '.rhcloud.com'
+]
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
@@ -117,7 +116,7 @@ DEFAULT_KEYS = {'SECRET_KEY': '%6e!q!!*+4u=m4+!q#5=zw5e3x!v+2_yclz48uyxs5#_-@grb
 
 if ON_OPENSHIFT:
     imp.find_module('openshiftlibs')
-    import openshiftlibs
+    from GIS import openshiftlibs
     use_keys = openshiftlibs.openshift_secure(DEFAULT_KEYS)
 
 # List of callables that know how to import templates from various sources.
@@ -133,6 +132,7 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     # Uncomment the next line for simple clickjacking protection:
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
@@ -159,6 +159,7 @@ INSTALLED_APPS = (
     'django.contrib.gis',
     'rest_framework',
     'GIS.cafe',
+    'corsheaders',
     # Uncomment the next line to enable the admin:
     # 'django.contrib.admin',
     # Uncomment the next line to enable admin documentation:
@@ -201,3 +202,5 @@ REST_FRAMEWORK = {
     ),
     'PAGINATE_BY': 100,
 }
+
+CORS_ORIGIN_ALLOW_ALL = False
