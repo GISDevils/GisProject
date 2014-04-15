@@ -2,7 +2,14 @@
 from rest_framework.fields import DecimalField, IntegerField
 from rest_framework.relations import RelatedField
 from rest_framework.serializers import ModelSerializer, Serializer
-from GIS.cafe.models import Address, Cafe
+from GIS.cafe.models import Address, Cafe, CuisineType
+from GIS.fields import ListField
+
+
+class CuisineTypeSerializer(ModelSerializer):
+    class Meta:
+        model = CuisineType
+        fields = ['id', 'name']
 
 
 class CafeSerializer(ModelSerializer):
@@ -32,6 +39,6 @@ class AddressFilterSerializer(Serializer):
     latitude = DecimalField(max_digits=20, decimal_places=16, required=False)
     longitude = DecimalField(max_digits=20, decimal_places=16, required=False)
     distance = IntegerField(required=False)
-    # FIXME
-    # cuisines = IntegerField(required=False, many=True)
+    cuisines = ListField(field=IntegerField(required=True),
+                         required=False)
     max_price = IntegerField(required=False)
