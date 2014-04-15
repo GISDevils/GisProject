@@ -7,7 +7,6 @@ branches:
 language: python
 
 before_script:
-  - mysql -e 'create database test_gis;'
   - mysql -e 'create database gis;'
 
 python:
