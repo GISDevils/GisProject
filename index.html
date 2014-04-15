@@ -5,7 +5,7 @@
     	<style type="text/css">
       		html { height: 100% }
       		body { height: 100%; margin: 0; padding: 0 }
-      		#map-canvas { height: 100%; width: 70%; margin-top: 60; }
+      		#map-canvas { height: 80%; width: 70%; margin-top: 60; }
           #panel 
           {
             position: absolute;
@@ -50,12 +50,12 @@
       		function initialize() 
           {
             document.getElementById('side').innerHTML = "Nothing is found yet";
-            initialLocation = new google.maps.LatLng(52.520816, 13.410186);
+            initialLocation = new google.maps.LatLng(55.1765, 61.39879);
 
         	   var mapOptions = 
              {
-          		center: new google.maps.LatLng(52.520816, 13.410186),
-          		zoom: 13,
+          		center: new google.maps.LatLng(55.1765, 61.39879),
+          		zoom: 15,
               mapTypeId: google.maps.MapTypeId.TERRAIN
         	   };
         	   map = new google.maps.Map(document.getElementById("map-canvas"), mapOptions);
@@ -79,7 +79,7 @@
                       content: "Your location"
                     });
                   }, function() {
-                    initialLocation = new google.maps.LatLng(52.520816, 13.410186);
+                    initialLocation = new google.maps.LatLng(55.1765, 61.39879);
                     alert("Geolocation service failed");
                   });
       		   }
@@ -131,13 +131,27 @@
           var httpHandler = function(responseJson)
           {
             var obj = JSON.parse(responseJson);
-            //alert(obj.count);
+
+            var infoString;
+            if (obj.count > 0)
+              infoString = "Our service found " + obj.count + " cafeterias matching your criteria:";
+            else 
+              infoString = "Sorry, nothing was found! :(";
+
             for (var i = 0; i < obj.count; i++)
             {
-              addMarker(latitude, longitude);
+              infoString += "<br />" + (i+1) + ")<br />";
+              infoString += "Name: " + obj.results[i].name + "<br />";
+              infoString += "Address: " + obj.results[i].street + " " + obj.results[i].building + "<br />";
+              if (obj.results[i].phones == null)
+                infoString += "Phone: Not Available :(" + "<br />";
+              else
+                infoString += "Phone: " + obj.results[i].phones + "<br />";
+
+              addMarker(obj.results[i].latitude, obj.results[i].longitude);
             }
 
-            document.getElementById('side').innerHTML = "Our service found cafes matching your criteria:";
+            document.getElementById('side').innerHTML = infoString;
           };
 
           //client-server interaction
@@ -160,13 +174,16 @@
 
           function submit()
           {
+            document.getElementById('side').innerHTML = "Please wait! Calculating...";
+
             var price = document.getElementById('price').value;
             var distance = document.getElementById('distance').value;
             var cuisine = document.getElementById('cuisine').value;
             var type = document.getElementById('type').value;
 
             //sendHttpRequest("http://django-vmigisdevils.rhcloud.com/cafe/api/addresses/?price=" + price + "&distance=" + distance + "&latitude=" + initialLocation.latitude + "&longitude=" + initialLocation.longitude + "&cuisine=" + cuisine, httpHandler);
-            sendHttpRequest("http://django-vmigisdevils.rhcloud.com/cafe/api/addresses/?max_price=" + price + "&distance=" + distance + "&latitude=" + initialLocation.latitude + "&longitude=" + initialLocation.longitude, httpHandler);
+            //sendHttpRequest("http://cafegis-vmigisdevils.rhcloud.com/cafe/api/addresses/?max_price=" + price + "&distance=" + //distance + "&latitude=" + 55 + "&longitude=" + 55, httpHandler);
+            sendHttpRequest("http://cafegis-vmigisdevils.rhcloud.com/cafe/api/addresses/?distance=500&latitude=55.1765&longitude=61.39879", httpHandler);
           };
 
       		google.maps.event.addDomListener(window, 'load', initialize);
