@@ -222,8 +222,10 @@ def update_geolocations database
 
 		rest_query = URI::escape(uri % "Chelyabinsk,#{street},#{building}")
 
-		geodata = open rest_query 
-		json = JSON.parse geodata.string
+		geodata = open(rest_query).read
+		puts geodata
+
+		json = JSON.parse geodata
 
 		next if json['status'] != 'OK'
 		coords = json['results'][0]['geometry']['viewport']['northeast']
