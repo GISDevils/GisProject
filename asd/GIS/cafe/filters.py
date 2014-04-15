@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 from geopy.distance import distance
 from rest_framework.filters import BaseFilterBackend
-from GIS.cafe.models import Cafe
-from GIS.cafe.serializers import AddressFilterSerializer
+from asd.GIS.cafe.models import Cafe
+from asd.GIS.cafe.serializers import AddressFilterSerializer
 
 
 class AddressFilterBackend(BaseFilterBackend):
