@@ -4,10 +4,16 @@ branches:
     - master
     - backend  # FIXME remove at merging.
 
+language: python
+
+python:
+  - "2.7"
+
+env:
+  - DJANGO=1.5
+
 install:
-  - bundle install
+  - pip install -r requirements.txt
 
-before_script:
-  - mysql --user='travis' --password='' < ./database/database.sql
-
-script: ruby ./database/parser.rb
+script:
+  - python GIS/manage.py test
