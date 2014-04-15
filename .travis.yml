@@ -12,7 +12,6 @@ deploy:
   app: cafegis
   domain: vmigisdevils
   on:
-    repo: GISDevils/GisProject
     branch: openshift
 
 language: python
@@ -27,7 +26,7 @@ env:
   - DJANGO=1.5
 
 install:
-  - pip install -r wsgi/GIS/requirements.txt
+  - pip install -r requirements.txt
 
 script:
-  - python wsgi/GIS/manage.py test
+  - python GIS/manage.py test

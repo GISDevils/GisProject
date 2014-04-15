@@ -1,5 +1,0 @@
-django == 1.5
-djangorestframework == 2.3.13
-geopy
-mysql-python
-django-cors-headers
