@@ -5,7 +5,7 @@
     	<style type="text/css">
       		html { height: 100% }
       		body { height: 100%; margin: 0; padding: 0 }
-      		#map-canvas { height: 100%; width: 80%; margin-top: 60; }
+      		#map-canvas { height: 100%; width: 70%; margin-top: 60; }
           #panel 
           {
             position: absolute;
@@ -16,6 +16,15 @@
             background-color: #fff;
             padding: 5px;
             border: 1px solid #999;
+          }
+          #side
+          {
+            position: absolute;
+            top: 10px;
+            left: 70%;
+            margin-left: 10px;
+            font-family:Monospace;
+            width: 30%;
           }
     	</style>
     	<script type="text/javascript"
@@ -40,6 +49,9 @@
 
       		function initialize() 
           {
+            document.getElementById('side').innerHTML = "Nothing is found yet";
+            initialLocation = new google.maps.LatLng(52.520816, 13.410186);
+
         	   var mapOptions = 
              {
           		center: new google.maps.LatLng(52.520816, 13.410186),
@@ -124,6 +136,8 @@
             {
               addMarker(latitude, longitude);
             }
+
+            document.getElementById('side').innerHTML = "Our service found cafes matching your criteria:";
           };
 
           //client-server interaction
@@ -188,6 +202,7 @@
       <!--<button id="drop" onclick="drop()">Search Cafe</button>
       <button id="remap" onclick="remap()">Remap</button> -->
     </div>
+    <div id="side"></div>
 		<div id="map-canvas"/>
 	</body>
 </html>
