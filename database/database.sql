@@ -1,15 +1,23 @@
-CREATE DATABASE gis;
+DROP DATABASE IF EXISTS `gis`;
+CREATE DATABASE `gis`;
+
+USE 'mysql';
+GRANT ALL PRIVILEGES ON gis.* TO 'gis_user'@'localhost' IDENTIFIED BY 'qwerty'
+
+WITH GRANT OPTION;
+FLUSH PRIVILEGES;
 
 CREATE TABLE gis.cafes (
 	id INT(10) PRIMARY KEY AUTO_INCREMENT,
 	name VARCHAR(50) NOT NULL,
 	phones VARCHAR(30),
-	min_price SMALLINT DEFAULT NULL,
+	avg_price SMALLINT DEFAULT NULL,
 
 	UNIQUE (name)
 );
 
 CREATE TABLE gis.addresses (
+	id INT(10) PRIMARY KEY AUTO_INCREMENT,
 	cafe_id INT(10) NOT NULL,
 	street VARCHAR(50) NOT NULL,
 	building SMALLINT NOT NULL,
@@ -36,6 +44,7 @@ CREATE TABLE gis.cafe_types (
 );
 
 CREATE TABLE gis.cuisines (
+	id INT(10) PRIMARY KEY AUTO_INCREMENT,
 	cafe_id INT(10) NOT NULL,
 	cuisine_id SMALLINT NOT NULL,
 
@@ -46,6 +55,7 @@ CREATE TABLE gis.cuisines (
 );
 
 CREATE TABLE gis.types (
+	id INT(10) PRIMARY KEY AUTO_INCREMENT,
 	cafe_id INT(10) NOT NULL,
 	type_id SMALLINT NOT NULL,
 

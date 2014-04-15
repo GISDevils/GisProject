@@ -1,8 +1,22 @@
 # .travis.yml
-install:
-  - bundle install
+branches:
+  only:
+    - master
+    - backend  # FIXME remove at merging.
+
+language: python
 
 before_script:
-  - mysql --user='travis' --password='' < ./database.sql
+  - mysql -e 'create database gis;'
 
-script: ruby ./parser.rb
+python:
+  - "2.7"
+
+env:
+  - DJANGO=1.5
+
+install:
+  - pip install -r requirements.txt
+
+script:
+  - python GIS/manage.py test
