@@ -2,7 +2,7 @@
 branches:
   only:
     - master
-    - backend  # FIXME remove at merging.
+    - openshift  # FIXME remove at merging.
 
 language: python
 
@@ -16,7 +16,7 @@ env:
   - DJANGO=1.5
 
 install:
-  - pip install -r requirements.txt
+  - pip install -r wsgi/GIS/requirements.txt
 
 script:
   - python wsgi/GIS/manage.py test
