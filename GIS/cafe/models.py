@@ -15,9 +15,7 @@ class DistanceManager(models.Manager):
             FROM addresses
             HAVING distance < {2}
             """.format(current_location[0], current_location[1], distance/1000.0))
-        # print cursor.fetchall()
         id_list = [row[0] for row in cursor.fetchall()]
-        # print id_list
         return self.get_query_set().filter(id__in=id_list)
 
 
