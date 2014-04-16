@@ -252,11 +252,11 @@
             requestString += "&longitude=";
             requestString += initialLocation.lng();
           
-            requestString += "&distance=";
             if (distance != "")
+            {
+              requestString += "&distance=";
               requestString += distance;
-            else
-              requestString += "100";
+            }
 
             if (price != "")
             {
