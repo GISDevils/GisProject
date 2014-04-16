@@ -26,7 +26,7 @@ class CuisineTypesViewSet(mixins.ListModelMixin, GenericViewSet):
     model = CuisineType
 
     def get_queryset(self):
-        queryset = super(CafeTypesViewSet, self).get_queryset()
+        queryset = super(CuisineTypesViewSet, self).get_queryset()
         return queryset.extra(order_by=['id'])
 
 
