@@ -1,2 +1,0 @@
-DROP DATABASE IF EXISTS `cafegis`;
-CREATE DATABASE `cafegis`;
