@@ -1,44 +1,44 @@
 <!DOCTYPE html>
-<html> 
-  <head>
-    <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
-      <style type="text/css">
-          html { height: 100% }
-          body { height: 100%; margin: 0; padding: 0; background-color: gray;}
-          #map-canvas 
-          {
-            position:absolute;
-            top:19%;
-            left:1%;
-            height: 80%;
-            width: 70%;
-            margin-top: 60;
-          }
-          #panel 
-          {
-            position: absolute;
-            top: 100%;
-            left: 1%;
-            width: 80%;
-            height: 20%;
-            z-index: 5;
-            padding: 5px;
-            font-family:Monospace;
-          }
-          #side
-          {
-            position: absolute;
-            top: 20%;
-            left: 71%;
-            margin-left: 10px;
-            width: 30%;
-            font-family:Monospace;
-          }
-      </style>
-      <script type="text/javascript"
-          src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBjNmXUhHhcG-Zh2SZ6fWn0uyIWBByJSXY&libraries=drawing&sensor=true">
-      </script>
-      <script type="text/javascript">
+<html>
+<head>
+<meta name="viewport" content="initial-scale=1.0, user-scalable=no"/>
+<style type="text/css">
+    html { height: 100% }
+    body { height: 100%; margin: 0; padding: 0; background-color: gray;}
+    #map-canvas
+    {
+    position:absolute;
+    top:19%;
+    left:1%;
+    height: 80%;
+    width: 70%;
+    margin-top: 60;
+    }
+    #panel
+    {
+    position: absolute;
+    top: 100%;
+    left: 1%;
+    width: 80%;
+    height: 20%;
+    z-index: 5;
+    padding: 5px;
+    font-family:Monospace;
+    }
+    #side
+    {
+    position: absolute;
+    top: 20%;
+    left: 71%;
+    margin-left: 10px;
+    width: 30%;
+    font-family:Monospace;
+    }
+</style>
+<script type="text/javascript"
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBjNmXUhHhcG-Zh2SZ6fWn0uyIWBByJSXY&libraries=drawing&sensor=true">
+</script>
+<script type="text/javascript">
 
           var initialLocation;
 
@@ -298,38 +298,41 @@
 
           google.maps.event.addDomListener(window, 'load', initialize);
 
-      </script>
-  </head>
-  <body background="{{MEDIA_URL}}img/bg.jpg">
-    <div id="panel" style="color:white;">
-      <form id="data_form">
+
+</script>
+</head>
+<body background="{{MEDIA_URL}}img/bg.jpg">
+<div id="panel" style="color:white;">
+    <form id="data_form">
         <b>Price:</b>
-        <br />
+        <br/>
         <input id="price" type="text">
-        <br />
+        <br/>
         <b>Distance:</b>
-        <br />
+        <br/>
         <input id="distance" type="text">
-        <br />
+        <br/>
         <b>Cuisine: </b>
+
         <div id="cuisinepanel">
         </div>
-        <b>Type:    </b>
+        <b>Type: </b>
+
         <div id="typepanel">
         </div>
-      </form>
-      <br />
-     <!-- <b>Mode of Travel: </b>
-      <select id="mode" onchange="calcRoute();">
-        <option value="DRIVING">Driving</option>
-        <option value="WALKING">Walking</option>
-        <option value="BICYCLING">Bicycling</option>
-        <option value="TRANSIT">Transit</option>
-      </select> -->
-      <br />
-      <button id="sendRequest" onclick="submit()">Search for Cafe</button>
-    </div>
-    <div id="side" style="overflow:scroll; height:630px; color:white;"></div>
-    <div id="map-canvas"/>
-  </body>
+    </form>
+    <br/>
+    <!-- <b>Mode of Travel: </b>
+     <select id="mode" onchange="calcRoute();">
+       <option value="DRIVING">Driving</option>
+       <option value="WALKING">Walking</option>
+       <option value="BICYCLING">Bicycling</option>
+       <option value="TRANSIT">Transit</option>
+     </select> -->
+    <br/>
+    <button id="sendRequest" onclick="submit()">Search for Cafe</button>
+</div>
+<div id="side" style="overflow:scroll; height:630px; color:white;"></div>
+<div id="map-canvas"/>
+</body>
 </html>
