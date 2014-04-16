@@ -1,7 +1,9 @@
 DROP DATABASE IF EXISTS gis;
 CREATE DATABASE gis COLLATE utf8_general_ci;
 
-CREATE TABLE gis.cafes (
+USE gis;
+
+CREATE TABLE cafes (
 	id INT(10) PRIMARY KEY AUTO_INCREMENT,
 	name VARCHAR(50) NOT NULL,
 	phones VARCHAR(30),
@@ -10,7 +12,7 @@ CREATE TABLE gis.cafes (
 	UNIQUE (name)
 );
 
-CREATE TABLE gis.addresses (
+CREATE TABLE addresses (
 	cafe_id INT(10) NOT NULL,
 	street VARCHAR(50) NOT NULL,
 	building SMALLINT NOT NULL,
@@ -22,21 +24,23 @@ CREATE TABLE gis.addresses (
 	FOREIGN KEY (cafe_id) REFERENCES cafes(id)
 );
 
-CREATE TABLE gis.cuisine_types (
+CREATE TABLE cuisine_types (
 	id SMALLINT PRIMARY KEY AUTO_INCREMENT,
 	name VARCHAR(40) NOT NULL,
 
 	UNIQUE(name)
 );
 
-CREATE TABLE gis.cafe_types (
+CREATE TABLE cafe_types (
 	id SMALLINT PRIMARY KEY AUTO_INCREMENT,
 	name VARCHAR(20) NOT NULL,
 
 	UNIQUE(name)
 );
 
-CREATE TABLE gis.cuisines (
+INSERT INTO cafe_types (name) VALUES ("ресторан"),("кафе"),("бар"),("суши"),("пиццерия");
+
+CREATE TABLE cuisines (
 	cafe_id INT(10) NOT NULL,
 	cuisine_id SMALLINT NOT NULL,
 
@@ -46,7 +50,7 @@ CREATE TABLE gis.cuisines (
 	FOREIGN KEY (cuisine_id) REFERENCES cuisine_types(id)
 );
 
-CREATE TABLE gis.types (
+CREATE TABLE types (
 	cafe_id INT(10) NOT NULL,
 	type_id SMALLINT NOT NULL,
 

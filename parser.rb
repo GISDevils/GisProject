@@ -8,6 +8,7 @@ require 'rubygems'
 require 'nokogiri'
 require 'open-uri'
 require 'json'
+require 'unicode'
 
 require_relative 'secrets'
 
@@ -44,16 +45,20 @@ class PageParser
 	end
 
 	def proceed
-		@site[:num].times do |i|
-			page = Nokogiri::HTML(open(@site[:uri] % i))
-			@places = @site[:parser].new.parse(page)
+		begin
+			@site[:num].times do |i|
+				page = Nokogiri::HTML(open(@site[:uri] % i))
+				@places = @site[:parser].new.parse(page)
 
-			self.insert_values(:cuisins, "cuisine_types")
-			self.insert_values(:types, "cafe_types")
-			self.insert_cafes
-			self.insert_addresses
-		
-			self.associate_cafes
+				self.insert_values(:cuisins, "cuisine_types")
+				self.insert_cafes
+				self.insert_addresses
+			
+				self.associate_cafes
+			end
+		rescue OpenURI::HTTPError => e
+			puts e.message
+			puts e.backtrace
 		end
 	end
 
@@ -61,6 +66,26 @@ class PageParser
 	def insert_values key, table_name
 		values = extract_unique_values(@places, key)
 		@db.query "INSERT IGNORE INTO #{table_name}(name) VALUES %s" % surround_values(values) unless values.empty?
+	end
+
+	@@types = {
+		"ресторан" => 1,
+		"кафе" => 2,
+		"бар" => 3,
+		"суши" => 4,
+		"доставка" => nil,
+		"пицц" => 5,
+		"café" => 2,
+		"bar" => 3
+	}
+
+	protected 
+	def get_type_id new_type
+		@@types.each do |type, id|
+			return id if Unicode::downcase(new_type).index(type) != nil
+		end
+		puts new_type
+		return nil
 	end
 
 	protected
@@ -101,11 +126,22 @@ class PageParser
 
 	protected
 	def associate_cafes
+		types = String.new
 		@places.each do |place|
 			next if place[:id] == nil
 			@db.query "INSERT IGNORE INTO cuisines SELECT %i, id FROM cuisine_types WHERE name IN (%s)" % [place[:id], quote_values(place[:cuisins])] unless place[:cuisins].empty?
-			@db.query "INSERT IGNORE INTO types SELECT %i, id FROM cafe_types WHERE name IN (%s)" % [place[:id], quote_values(place[:types])] unless place[:types].empty?
+
+			place[:types].each do |type|
+				type_id = get_type_id type
+				next if type_id.nil?
+				place[:types_ids] << type_id
+				types << ',' unless types.empty? 
+				types << '(' << place[:id] << ',' << type_id.to_s << ')'
+			end
 		end
+
+puts types
+		@db.query "INSERT IGNORE INTO types VALUES %s" % [types] unless types.empty?
 	end
 end
 
@@ -131,6 +167,7 @@ class Resto74Parser
 		types = place_data.scan(/(?<=, )([\s\S]+)(?=Адрес:)/)[0]
 		return if types == nil
 		new_place[:types] = types[0].strip.downcase.split(', ')
+		new_place[:types_ids] = []
 
 		address = place_data.scan(/(?<=Адрес: )([\s\S]+)(?=Телефон:)/)[0]
 		return if address == nil
@@ -179,6 +216,7 @@ class GobarsParser
 		phones_id = size - 1
 
 		new_place[:types] = (types_id >= size) ? [] : blocks[types_id].text.downcase.strip.split(', ')
+		new_place[:types_ids] = []
 
 		address = (address_id >= size) ? "" : blocks[address_id].text.strip
 		return if (address = address.scan(/(?<=\,)([\s\S]+)/)[0]) == nil or (address = address[0]) == nil
@@ -210,54 +248,74 @@ def generate_prices db
 	db.query 'INSERT INTO cafes(id, avg_price) VALUES %s ON DUPLICATE KEY UPDATE avg_price = VALUES(avg_price)' % [prices] unless prices.empty?
 end
 
-def update_geolocations database
-	uri = "http://maps.googleapis.com/maps/api/geocode/json?sensor=false&region=RU&address=%s"
+class Storage
+	def initialize 
+		begin
+			@db = Mysql.init
+			@db.options(Mysql::SET_CHARSET_NAME, 'utf8')
+			@db.real_connect('localhost', DB_USER, DB_PASSWORD, DB_NAME)
+		rescue Mysql::Error => e
+			puts e.message
+			puts e.backtrace
+			self.shutdown
+		end
+	end
 
-	addresses = database.query 'SELECT cafe_id, street, building FROM addresses'
+	def get_info sites
+		sites.each do |site|
+			parser = PageParser.new(@db, site)
+			parser.proceed
+		end
+	end
 
-	addresses.each_hash do |address|
-		cafe_id = address['cafe_id']
-		street = address['street'].force_encoding("utf-8")
-		building = address['building'].force_encoding("utf-8")
+	def update_geolocations
+		uri = "http://maps.googleapis.com/maps/api/geocode/json?sensor=false&region=RU&address=%s"
 
-		rest_query = URI::escape(uri % "Chelyabinsk,#{street},#{building}")
+		addresses = @db.query 'SELECT cafe_id, street, building FROM addresses'
 
-		geodata = open(rest_query).read
-		puts geodata
+		addresses.each_hash do |address|
+			cafe_id = address['cafe_id']
+			street = address['street'].force_encoding("utf-8")
+			building = address['building'].force_encoding("utf-8")
 
-		json = JSON.parse geodata
+			rest_query = URI::escape(uri % "Chelyabinsk,#{street},#{building}")
 
-		next if json['status'] != 'OK'
-		coords = json['results'][0]['geometry']['viewport']['northeast']
+			begin
+				geodata = open(rest_query).read
+			rescue OpenURI::HTTPError => e
+				puts e.message
+				puts e.backtrace
+				next
+			end
 
-		longitude = coords['lng']
-		latitude = coords['lat']
+			json = JSON.parse geodata
 
-		database.query "UPDATE addresses SET longitude = #{longitude}, latitude = #{latitude} WHERE cafe_id = #{cafe_id} AND street = #{street.inspect} AND building = #{building.inspect}"
+			next if json['status'] != 'OK'
+			coords = json['results'][0]['geometry']['viewport']['northeast']
+
+			longitude = coords['lng']
+			latitude = coords['lat']
+
+			@db.query "UPDATE addresses SET longitude = #{longitude}, latitude = #{latitude} WHERE cafe_id = #{cafe_id} AND street = #{street.inspect} AND building = #{building.inspect}"
+		end
+	end
+
+	def shutdown
+		@db.close if @db	
 	end
 end
 
 begin
 	sites = [
-		{:uri => 'http://chel.gobars.ru/bars/page_%i.html', :num => 6, :parser => GobarsParser},
-		{:uri => 'http://www.resto74.ru/items/%i', :num => 33, :parser => Resto74Parser},
+		#{:uri => 'http://chel.gobars.ru/bars/page_%i.html', :num => 6, :parser => GobarsParser},
+		{:uri => 'http://www.resto74.ru/items/%i', :num => 1, :parser => Resto74Parser},
 	]
 
-	begin
-		db = Mysql.init
-		db.options(Mysql::SET_CHARSET_NAME, 'utf8')
-		db.real_connect('localhost', DB_USER, DB_PASSWORD, DB_NAME)
+	storage = Storage.new
+	storage.get_info sites
 
-		generate_prices(db)
-		update_geolocations db
-		sites.each do |site|
-			parser = PageParser.new(db, site)
-			parser.proceed
-		end	
-	rescue Mysql::Error => e
-		puts e.message
-		puts e.backtrace
-	ensure
-		db.close if db	
-	end
+	#storage.generate_prices
+	#storage.update_geolocations
+
+	storage.shutdown
 end
