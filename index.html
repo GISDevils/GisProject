@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html> 
-	<head>
-		<meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
-    	<style type="text/css">
-      		html { height: 100% }
-      		body { height: 100%; margin: 0; padding: 0; background: -webkit-linear-gradient("ffffff", "b0b0b0"); }
-      		#map-canvas { height: 80%; width: 70%; margin-top: 60; }
+  <head>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+      <style type="text/css">
+          html { height: 100% }
+          body { height: 100%; margin: 0; padding: 0; background: -webkit-linear-gradient("ffffff", "b0b0b0"); }
+          #map-canvas { height: 80%; width: 70%; margin-top: 60; }
           #panel 
           {
             position: absolute;
@@ -26,11 +26,11 @@
             width: 30%;
             font-family:Monospace;
           }
-    	</style>
-    	<script type="text/javascript"
-      		src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBjNmXUhHhcG-Zh2SZ6fWn0uyIWBByJSXY&libraries=drawing&sensor=true">
-    	</script>
-    	<script type="text/javascript">
+      </style>
+      <script type="text/javascript"
+          src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBjNmXUhHhcG-Zh2SZ6fWn0uyIWBByJSXY&libraries=drawing&sensor=true">
+      </script>
+      <script type="text/javascript">
 
           var initialLocation;
 
@@ -49,18 +49,79 @@
           var directionsService = new google.maps.DirectionsService();
           var map;
 
-      		function initialize() 
+          var httpHandler = function(responseJson)
+          {
+            var obj = JSON.parse(responseJson);
+
+            var infoString;
+            if (obj.count > 0)
+              infoString = "Our service found " + obj.count + " cafeterias matching your criteria:";
+            else 
+              infoString = "Sorry, nothing was found! :(";
+
+            for (var i = 0; i < obj.count; i++)
+            {
+              infoString += "<br />" + (i+1) + ")<br />";
+              infoString += "Name: " + obj.results[i].name + "<br />";
+              infoString += "Address: " + obj.results[i].street + " " + obj.results[i].building + "<br />";
+              if (obj.results[i].phones == null)
+                infoString += "Phone: Not Available :(" + "<br />";
+              else
+                infoString += "Phone: " + obj.results[i].phones + "<br />";
+
+              addMarker(obj.results[i].latitude, obj.results[i].longitude);
+
+              if (i == 0)
+                map.setCenter(new google.maps.LatLng(obj.results[i].latitude, obj.results[i].longitude));
+            }
+
+            document.getElementById('side').innerHTML = infoString;
+          };
+
+          var cuisineHandler = function(responseJson)
+          {
+            var obj = JSON.parse(responseJson);
+            var cuisine_panel = '<select multiple id="cuisine_select">';
+
+            for (var i =0; i < obj.count; i++)
+            {
+              cuisine_panel += '<option id="' + i + '" value="' + obj.results[i].id + '">' + obj.results[i].name + "</option>"; 
+            }
+            
+            cuisine_panel += "</select>";
+            document.getElementById('cuisinepanel').innerHTML = cuisine_panel;
+          };
+
+          //client-server interaction
+          function sendHttpRequest(url, success, failure)
+          {
+            //var request = makeHttpObject();
+            var request = new XMLHttpRequest();
+            request.open("GET", url, true);
+            request.send(null);
+            request.onreadystatechange = function() {
+              if (request.readyState == 4)
+              {
+                if (request.status == 200)
+                  success(request.responseText);
+                else if (failure)
+                  failure (request.status, request.statusText);
+              }
+            };
+          };
+
+          function initialize() 
           {
             document.getElementById('side').innerHTML = "Nothing is found yet";
             initialLocation = new google.maps.LatLng(55.1765, 61.39879);
 
-        	   var mapOptions = 
+             var mapOptions = 
              {
-          		center: new google.maps.LatLng(55.1765, 61.39879),
-          		zoom: 15,
+              center: new google.maps.LatLng(55.1765, 61.39879),
+              zoom: 15,
               mapTypeId: google.maps.MapTypeId.TERRAIN
-        	   };
-        	   map = new google.maps.Map(document.getElementById("map-canvas"), mapOptions);
+             };
+             map = new google.maps.Map(document.getElementById("map-canvas"), mapOptions);
 
              //Initialize drawing library
              //var drawingManager = new google.maps.drawing.DrawingManager(
@@ -68,6 +129,8 @@
               //{
               //});
              //drawingManager.setMap(map);
+
+             sendHttpRequest("http://cafegis-vmigisdevils.rhcloud.com/cafe/api/cuisines/", cuisineHandler);
 
              directionsDisplay = new google.maps.DirectionsRenderer();
              directionsDisplay.setMap(map);
@@ -87,7 +150,7 @@
                     initialLocation = new google.maps.LatLng(55.1765, 61.39879);
                     alert("Geolocation service failed");
                   });
-      		   }
+             }
            }
 
            function calcRoute() 
@@ -150,77 +213,35 @@
             markers = [];
           }
 
-          var httpHandler = function(responseJson)
-          {
-            var obj = JSON.parse(responseJson);
-
-            var infoString;
-            if (obj.count > 0)
-              infoString = "Our service found " + obj.count + " cafeterias matching your criteria:";
-            else 
-              infoString = "Sorry, nothing was found! :(";
-
-            for (var i = 0; i < obj.count; i++)
-            {
-              infoString += "<br />" + (i+1) + ")<br />";
-              infoString += "Name: " + obj.results[i].name + "<br />";
-              infoString += "Address: " + obj.results[i].street + " " + obj.results[i].building + "<br />";
-              if (obj.results[i].phones == null)
-                infoString += "Phone: Not Available :(" + "<br />";
-              else
-                infoString += "Phone: " + obj.results[i].phones + "<br />";
-
-              addMarker(obj.results[i].latitude, obj.results[i].longitude);
-            }
-
-            document.getElementById('side').innerHTML = infoString;
-          };
-
-          //client-server interaction
-          function sendHttpRequest(url, success, failure)
-          {
-            //var request = makeHttpObject();
-            var request = new XMLHttpRequest();
-            request.open("GET", url, true);
-            request.send(null);
-            request.onreadystatechange = function() {
-              if (request.readyState == 4)
-              {
-                if (request.status == 200)
-                  success(request.responseText);
-                else if (failure)
-                  failure (request.status, request.statusText);
-              }
-            };
-          };
-
           function submit()
           {
             document.getElementById('side').innerHTML = "Please wait! Calculating...";
 
             var price = document.getElementById('price').value;
             var distance = document.getElementById('distance').value;
-            var cuisine = document.getElementById('cuisine').value;
+            //var cuisine = document.getElementById('cuisine').value;
             var type = document.getElementById('type').value;
+            var selectedCuisine = document.getElementById('cuisine_select').value;
 
             //sendHttpRequest("http://django-vmigisdevils.rhcloud.com/cafe/api/addresses/?price=" + price + "&distance=" + distance + "&latitude=" + initialLocation.latitude + "&longitude=" + initialLocation.longitude + "&cuisine=" + cuisine, httpHandler);
             //sendHttpRequest("http://cafegis-vmigisdevils.rhcloud.com/cafe/api/addresses/?max_price=" + price + "&distance=" + //distance + "&latitude=" + 55 + "&longitude=" + 55, httpHandler);
             sendHttpRequest("http://cafegis-vmigisdevils.rhcloud.com/cafe/api/addresses/?distance=500&latitude=55.1765&longitude=61.39879", httpHandler);
+            //sendHttpRequest("http://cafegis-vmigisdevils.rhcloud.com/cafe/addresses/cafetypes", httpHandler);
           };
 
-      		google.maps.event.addDomListener(window, 'load', initialize);
+          google.maps.event.addDomListener(window, 'load', initialize);
 
-    	</script>
-	</head>
-	<body>
-	<!--
-	<iframe
- 		width="450"
- 		height="250"
- 		frameborder="0" style="border:0"
- 		src="https://www.google.com/maps/embed/v1/search?key=AIzaSyBjNmXUhHhcG-	Zh2SZ6fWn0uyIWBByJSXY&q=record+stores+in+Seattle">
-		</iframe>
-		-->
+      </script>
+  </head>
+  <body>
+  <!--
+  <iframe
+    width="450"
+    height="250"
+    frameborder="0" style="border:0"
+    src="https://www.google.com/maps/embed/v1/search?key=AIzaSyBjNmXUhHhcG- Zh2SZ6fWn0uyIWBByJSXY&q=record+stores+in+Seattle">
+    </iframe>
+    -->
     <div id="panel">
       <form id="data form">
         <b>Price:   </b>
@@ -228,7 +249,8 @@
         <b>Distance:</b>
         <input id="distance" type="text">
         <b>Cuisine: </b>
-        <input id="cuisine" type="text">
+        <div id="cuisinepanel">
+        </div>
         <b>Type:    </b>
         <input id="type" type="text">
         <!--<input type="submit" onclick="submit()"> -->
@@ -251,6 +273,6 @@
       <button id="remap" onclick="remap()">Remap</button> -->
     </div>
     <div id="side"></div>
-		<div id="map-canvas"/>
-	</body>
+    <div id="map-canvas"/>
+  </body>
 </html>
