@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from geopy.distance import distance
 from rest_framework.filters import BaseFilterBackend
-from GIS.cafe.models import Cafe, Cuisine, CuisineType, Type, CafeType
+from GIS.cafe.models import Cafe, Cuisine, CuisineType, Type, CafeType, Address
 from GIS.cafe.serializers import AddressFilterSerializer
 
 
@@ -18,9 +18,10 @@ class AddressFilterBackend(BaseFilterBackend):
             if serializer.object.get('distance', None):
                 current_location = (serializer.object['latitude'], serializer.object['longitude'])
                 max_distance = serializer.object['distance']
-                for address in queryset:
-                    if self.get_distance(current_location, address.latitude, address.longitude) > max_distance:
-                        queryset = queryset.exclude(id=address.id)
+                queryset = queryset.filter(
+                    id__in=[
+                        address.id
+                        for address in Address.objects.within_distance(max_distance, current_location)])
             if serializer.object.get('max_price', None):
                 queryset = queryset.filter(
                     cafe__in=Cafe.objects.filter(avg_price__lte=serializer.object['max_price']))
