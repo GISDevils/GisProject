@@ -4,18 +4,18 @@
 		<meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
     	<style type="text/css">
       		html { height: 100% }
-      		body { height: 100%; margin: 0; padding: 0 }
+      		body { height: 100%; margin: 0; padding: 0; background: -webkit-linear-gradient("ffffff", "b0b0b0"); }
       		#map-canvas { height: 80%; width: 70%; margin-top: 60; }
           #panel 
           {
             position: absolute;
-            top: 5px;
-            left: 40%;
-            margin-left: -180px;
+            top: 80%;
+            left: 0%;
+            width: 80%;
+            height: 20%;
             z-index: 5;
-            background-color: #fff;
             padding: 5px;
-            border: 1px solid #999;
+            font-family:Monospace;
           }
           #side
           {
@@ -23,8 +23,8 @@
             top: 10px;
             left: 70%;
             margin-left: 10px;
-            font-family:Monospace;
             width: 30%;
+            font-family:Monospace;
           }
     	</style>
     	<script type="text/javascript"
@@ -45,6 +45,8 @@
           var markers = [];
           var iterator = 0;
 
+          var directionsDisplay;
+          var directionsService = new google.maps.DirectionsService();
           var map;
 
       		function initialize() 
@@ -67,6 +69,9 @@
               //});
              //drawingManager.setMap(map);
 
+             directionsDisplay = new google.maps.DirectionsRenderer();
+             directionsDisplay.setMap(map);
+
              if(navigator.geolocation) 
              {
                 navigator.geolocation.getCurrentPosition(function(position) {
@@ -83,6 +88,23 @@
                     alert("Geolocation service failed");
                   });
       		   }
+           }
+
+           function calcRoute() 
+           {
+            var selectedMode = document.getElementById('mode').value;
+            var request = {
+              origin: initialLocation,
+              destination: new google.maps.LatLng(55.1765, 61.39879),
+    
+              travelMode: google.maps.TravelMode[selectedMode]
+            };
+
+            directionsService.route(request, function(response, status) {
+            if (status == google.maps.DirectionsStatus.OK) {
+              directionsDisplay.setDirections(response);
+                }
+              });
            }
 
           function drop() 
@@ -199,13 +221,12 @@
  		src="https://www.google.com/maps/embed/v1/search?key=AIzaSyBjNmXUhHhcG-	Zh2SZ6fWn0uyIWBByJSXY&q=record+stores+in+Seattle">
 		</iframe>
 		-->
-    <div id="panel" style="margin-left: -52px">
+    <div id="panel">
       <form id="data form">
         <b>Price:   </b>
         <input id="price" type="text">
         <b>Distance:</b>
         <input id="distance" type="text">
-        <br />
         <b>Cuisine: </b>
         <input id="cuisine" type="text">
         <b>Type:    </b>
@@ -215,6 +236,16 @@
           <option value="current location">Current Location</option>
         </select> -->
       </form>
+      <br />
+      <b>Mode of Travel: </b>
+      <select id="mode" onchange="calcRoute();">
+        <option value="DRIVING">Driving</option>
+        <option value="WALKING">Walking</option>
+        <option value="BICYCLING">Bicycling</option>
+        <option value="TRANSIT">Transit</option>
+      </select>
+      <br />
+      <br />
       <button id="sendRequest" onclick="submit()">Search for Cafe</button>
       <!--<button id="drop" onclick="drop()">Search Cafe</button>
       <button id="remap" onclick="remap()">Remap</button> -->
