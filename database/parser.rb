@@ -150,7 +150,7 @@ class PageParser
 		types = String.new
 		@places.each do |place|
 			next if place[:id] == nil
-			@db.query "INSERT IGNORE INTO cuisines SELECT %i, id FROM cuisine_types WHERE name IN (%s)" % [place[:id], quote_values(place[:cuisins])] unless place[:cuisins].empty?
+			@db.query "INSERT IGNORE INTO cuisines(cafe_id, cuisine_id) SELECT %i, id FROM cuisine_types WHERE name IN (%s)" % [place[:id], quote_values(place[:cuisins])] unless place[:cuisins].empty?
 
 			place[:types].each do |type|
 				type_id = get_type_id type
@@ -162,7 +162,7 @@ class PageParser
 				types << '(' << place[:id] << ',' << type_id.to_s << ')'
 			end
 		end
-		@db.query "INSERT IGNORE INTO types VALUES %s" % [types] unless types.empty?
+		@db.query "INSERT IGNORE INTO types(cafe_id, type_id) VALUES %s" % [types] unless types.empty?
 	end
 end
 
