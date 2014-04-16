@@ -170,4 +170,4 @@ class ApiTest(TestCase):
         self.assertEqual(result['count'], 3)
         self.assertEqual(result['results'][0]['name'], 'Test_cafe1')
         self.assertEqual(result['results'][1]['name'], 'Test_cafe2')
-        self.assertEqual(result['results'][2]['name'], 'Test_cafe3')
+        self.assertEqual(result['results'][2]['name'], 'Test_cafe2')
