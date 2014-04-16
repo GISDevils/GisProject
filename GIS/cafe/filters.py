@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from geopy.distance import distance
 from rest_framework.filters import BaseFilterBackend
-from GIS.cafe.models import Cafe, Cuisine, CuisineType
+from GIS.cafe.models import Cafe, Cuisine, CuisineType, Type, CafeType
 from GIS.cafe.serializers import AddressFilterSerializer
 
 
@@ -31,6 +31,13 @@ class AddressFilterBackend(BaseFilterBackend):
                             cuisine.cafe
                             for cuisine in Cuisine.objects.filter(
                                 cuisine=CuisineType.objects.get(id=cuisine_id))])
+            if serializer.object.get('types', None):
+                for type_id in serializer.object['types']:
+                    queryset = queryset.filter(
+                        cafe__in=[
+                            type.cafe
+                            for type in Type.objects.filter(
+                                type=CafeType.objects.get(id=type_id))])
         else:
             queryset = queryset.none()
         return queryset

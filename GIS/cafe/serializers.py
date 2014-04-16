@@ -47,4 +47,6 @@ class AddressFilterSerializer(Serializer):
     distance = IntegerField(required=False)
     cuisines = ListField(field=IntegerField(required=True),
                          required=False)
+    types = ListField(field=IntegerField(required=True),
+                      required=False)
     max_price = IntegerField(required=False)
