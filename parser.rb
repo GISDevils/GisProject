@@ -73,19 +73,40 @@ class PageParser
 		"кафе" => 2,
 		"бар" => 3,
 		"суши" => 4,
-		"доставка" => nil,
-		"пицц" => 5,
+		"доставка" => 7,
+		"пиццерия" => 5,
 		"café" => 2,
-		"bar" => 3
+		"bar" => 3,
+		"караоке" => 6,
+		"restaurant" => 1,
+		"паб" => 8,
+		"кофе" => 9,
+		"cafe" => 2,
+		"банкет" => 10,
+		"ночной клуб" => 11,
+		"бильярд" => 12,
+		"комплекс" => 13,
+		"пирог" => 14,
+		"трактир" => 8,
+		"кондитерск" => 15,
+		"пекарн" => 15,
+		"karaoke" => 6,
+		"дайнер" => 1,
+		"стейк" => 1,
+		"боулинг" => 16,
+		"зал" => 10,
+		"клуб" => 3,
+		"кулинар" => 15
 	}
 
 	protected 
 	def get_type_id new_type
+		result = Array.new
 		@@types.each do |type, id|
-			return id if Unicode::downcase(new_type).index(type) != nil
+			result << id unless Unicode::downcase(new_type).index(type).nil? or id.nil?
 		end
-		puts new_type
-		return nil
+		puts new_type if result.empty?
+		return result
 	end
 
 	protected
@@ -133,14 +154,14 @@ class PageParser
 
 			place[:types].each do |type|
 				type_id = get_type_id type
-				next if type_id.nil?
-				place[:types_ids] << type_id
-				types << ',' unless types.empty? 
+				place[:types_ids].concat type_id unless type_id.nil?
+			end
+
+			place[:types_ids].each do |type_id|
+				types << ',' unless types.empty?
 				types << '(' << place[:id] << ',' << type_id.to_s << ')'
 			end
 		end
-
-puts types
 		@db.query "INSERT IGNORE INTO types VALUES %s" % [types] unless types.empty?
 	end
 end
@@ -238,16 +259,6 @@ class GobarsParser
 	end
 end
 
-def generate_prices db
-	prices = String.new
-	db.query('SELECT id FROM cafes WHERE avg_price IS NULL').each_hash do |row|
-		cafe_id = row['id']
-		prices << ',' unless prices.empty?
-		prices << '(' << cafe_id << ',' << ([*1..5].sample * 100).to_s << ')'
-	end
-	db.query 'INSERT INTO cafes(id, avg_price) VALUES %s ON DUPLICATE KEY UPDATE avg_price = VALUES(avg_price)' % [prices] unless prices.empty?
-end
-
 class Storage
 	def initialize 
 		begin
@@ -300,6 +311,16 @@ class Storage
 		end
 	end
 
+	def generate_prices
+		prices = String.new
+		@db.query('SELECT id FROM cafes WHERE avg_price IS NULL').each_hash do |row|
+			cafe_id = row['id']
+			prices << ',' unless prices.empty?
+			prices << '(' << cafe_id << ',' << ([*1..5].sample * 100).to_s << ')'
+		end
+		@db.query 'INSERT INTO cafes(id, avg_price) VALUES %s ON DUPLICATE KEY UPDATE avg_price = VALUES(avg_price)' % [prices] unless prices.empty?
+	end
+
 	def shutdown
 		@db.close if @db	
 	end
@@ -307,15 +328,15 @@ end
 
 begin
 	sites = [
-		#{:uri => 'http://chel.gobars.ru/bars/page_%i.html', :num => 6, :parser => GobarsParser},
-		{:uri => 'http://www.resto74.ru/items/%i', :num => 1, :parser => Resto74Parser},
+		{:uri => 'http://chel.gobars.ru/bars/page_%i.html', :num => 6, :parser => GobarsParser},
+		{:uri => 'http://www.resto74.ru/items/%i', :num => 33, :parser => Resto74Parser},
 	]
 
 	storage = Storage.new
 	storage.get_info sites
 
-	#storage.generate_prices
-	#storage.update_geolocations
+	storage.generate_prices
+	storage.update_geolocations
 
 	storage.shutdown
 end
