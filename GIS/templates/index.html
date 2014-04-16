@@ -152,8 +152,8 @@
               //});
              //drawingManager.setMap(map);
 
-             sendHttpRequest("http://cafegis-vmigisdevils.rhcloud.com/cafe/api/cuisines/", cuisineHandler);
-             sendHttpRequest("http://cafegis-vmigisdevils.rhcloud.com/cafe/api/cafetypes/", typeHandler);
+             sendHttpRequest("/cafe/api/cuisines/", cuisineHandler);
+             sendHttpRequest("/cafe/api/cafetypes/", typeHandler);
 
              directionsDisplay = new google.maps.DirectionsRenderer();
              directionsDisplay.setMap(map);
@@ -175,7 +175,7 @@
                   });
              }
 
-            var request = "http://cafegis-vmigisdevils.rhcloud.com/cafe/api/addresses/";
+            var request = "/cafe/api/addresses/";
             request += "?latitude=";
             request += initialLocation.lat();
             request += "&longitude=";
@@ -255,7 +255,7 @@
             //var selectedCuisine = document.getElementById('cuisine_select').value;
            // var selectedType = document.getElementById('type_select').value;
 
-            var requestString = "http://cafegis-vmigisdevils.rhcloud.com/cafe/api/addresses/";
+            var requestString = "/cafe/api/addresses/";
             requestString += "?latitude=";
             requestString += initialLocation.lat();
             requestString += "&longitude=";
@@ -300,7 +300,7 @@
 
       </script>
   </head>
-  <body background="bg.jpg">
+  <body background="{{MEDIA_URL}}img/bg.jpg">
     <div id="panel" style="color:white;">
       <form id="data_form">
         <b>Price:</b>
