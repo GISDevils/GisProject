@@ -10,11 +10,11 @@ source $OPENSHIFT_HOMEDIR/python/virtenv/bin/activate
 echo "Executing 'python $OPENSHIFT_REPO_DIR/GIS/manage.py dbshell < $OPENSHIFT_REPO_DIR/database/drop_create.sql'"
 python $OPENSHIFT_REPO_DIR/GIS/manage.py dbshell < $OPENSHIFT_REPO_DIR/database/drop_create.sql
 
+echo "Executing 'python $OPENSHIFT_REPO_DIR/GIS/manage.py dbshell < $OPENSHIFT_REPO_DIR/database/gis.sql'"
+python $OPENSHIFT_REPO_DIR/GIS/manage.py dbshell < $OPENSHIFT_REPO_DIR/database/gis.sql
+
 echo "Executing 'python $OPENSHIFT_REPO_DIR/GIS/manage.py syncdb --noinput'"
 python $OPENSHIFT_REPO_DIR/GIS/manage.py syncdb --noinput
 
 echo "Executing 'python $OPENSHIFT_REPO_DIR/GIS/manage.py collectstatic --noinput --ignore rest_framework'"
 python $OPENSHIFT_REPO_DIR/GIS/manage.py collectstatic --noinput --ignore rest_framework
-
-echo "Executing 'python $OPENSHIFT_REPO_DIR/GIS/manage.py loaddata cafe.json"
-python $OPENSHIFT_REPO_DIR/GIS/manage.py loaddata cafe.json
