@@ -7,7 +7,9 @@ GRANT ALL PRIVILEGES ON gis.* TO 'gis_user'@'localhost' IDENTIFIED BY 'qwerty'
 WITH GRANT OPTION;
 FLUSH PRIVILEGES;
 
-CREATE TABLE gis.cafes (
+USE gis;
+
+CREATE TABLE cafes (
 	id INT(10) PRIMARY KEY AUTO_INCREMENT,
 	name VARCHAR(50) NOT NULL,
 	phones VARCHAR(30),
@@ -16,7 +18,7 @@ CREATE TABLE gis.cafes (
 	UNIQUE (name)
 );
 
-CREATE TABLE gis.addresses (
+CREATE TABLE addresses (
 	id INT(10) PRIMARY KEY AUTO_INCREMENT,
 	cafe_id INT(10) NOT NULL,
 	street VARCHAR(50) NOT NULL,
@@ -29,22 +31,39 @@ CREATE TABLE gis.addresses (
 	FOREIGN KEY (cafe_id) REFERENCES cafes(id)
 );
 
-CREATE TABLE gis.cuisine_types (
+CREATE TABLE cuisine_types (
 	id SMALLINT PRIMARY KEY AUTO_INCREMENT,
 	name VARCHAR(40) NOT NULL,
 
 	UNIQUE(name)
 );
 
-CREATE TABLE gis.cafe_types (
+CREATE TABLE cafe_types (
 	id SMALLINT PRIMARY KEY AUTO_INCREMENT,
 	name VARCHAR(20) NOT NULL,
 
 	UNIQUE(name)
 );
 
-CREATE TABLE gis.cuisines (
-	id INT(10) PRIMARY KEY AUTO_INCREMENT,
+INSERT INTO cafe_types (name) VALUES 
+		("ресторан"),		# 1
+		("кафе"),			# 2
+		("бар"),			# 3
+		("суши"),			# 4
+		("пиццерия"),		# 5
+		("караоке"),		# 6
+		("доставка"),		# 7
+		("паб"),			# 8
+		("кофейня"),		# 9
+		("банкетный зал"), 	# 10
+		("ночной клуб"),	# 11
+		("бильярд"),		# 12
+		("развлекательный комплекс"), # 13
+		("пироги"),			# 14
+		("кондитерская"),	# 15
+		("боулинг");		# 16
+
+CREATE TABLE cuisines (
 	cafe_id INT(10) NOT NULL,
 	cuisine_id SMALLINT NOT NULL,
 
@@ -54,7 +73,7 @@ CREATE TABLE gis.cuisines (
 	FOREIGN KEY (cuisine_id) REFERENCES cuisine_types(id)
 );
 
-CREATE TABLE gis.types (
+CREATE TABLE types (
 	id INT(10) PRIMARY KEY AUTO_INCREMENT,
 	cafe_id INT(10) NOT NULL,
 	type_id SMALLINT NOT NULL,
