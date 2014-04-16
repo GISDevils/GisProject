@@ -25,7 +25,15 @@ class CuisineTypesViewSet(mixins.ListModelMixin, GenericViewSet):
     serializer_class = CuisineTypeSerializer
     model = CuisineType
 
+    def get_queryset(self):
+        queryset = super(CafeTypesViewSet, self).get_queryset()
+        return queryset.extra(order_by=['id'])
+
 
 class CafeTypesViewSet(mixins.ListModelMixin, GenericViewSet):
     serializer_class = CafeTypeSerializer
     model = CafeType
+
+    def get_queryset(self):
+        queryset = super(CafeTypesViewSet, self).get_queryset()
+        return queryset.extra(order_by=['id'])
