@@ -4,13 +4,21 @@
     <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
       <style type="text/css">
           html { height: 100% }
-          body { height: 100%; margin: 0; padding: 0; background: -webkit-linear-gradient("ffffff", "b0b0b0"); }
-          #map-canvas { height: 80%; width: 70%; margin-top: 60; }
+          body { height: 100%; margin: 0; padding: 0; background-image: "bg.jpg"; }
+          #map-canvas 
+          {
+            position:absolute;
+            top:19%;
+            left:1%;
+            height: 80%;
+            width: 70%;
+            margin-top: 60;
+          }
           #panel 
           {
             position: absolute;
-            top: 80%;
-            left: 0%;
+            top: 100%;
+            left: 1%;
             width: 80%;
             height: 20%;
             z-index: 5;
@@ -20,8 +28,8 @@
           #side
           {
             position: absolute;
-            top: 10px;
-            left: 70%;
+            top: 20%;
+            left: 71%;
             margin-left: 10px;
             width: 30%;
             font-family:Monospace;
@@ -92,6 +100,20 @@
             document.getElementById('cuisinepanel').innerHTML = cuisine_panel;
           };
 
+          var typeHandler = function(responseJson)
+          {
+            var obj = JSON.parse(responseJson);
+            var type_panel = '<select multiple id="type_select">';
+
+            for (var i =0; i < obj.count; i++)
+            {
+              type_panel += '<option id="' + i + '" value="' + obj.results[i].id + '">' + obj.results[i].name + "</option>"; 
+            }
+            
+            type_panel += "</select>";
+            document.getElementById('typepanel').innerHTML = type_panel;
+          };
+
           //client-server interaction
           function sendHttpRequest(url, success, failure)
           {
@@ -131,6 +153,7 @@
              //drawingManager.setMap(map);
 
              sendHttpRequest("http://cafegis-vmigisdevils.rhcloud.com/cafe/api/cuisines/", cuisineHandler);
+             sendHttpRequest("http://cafegis-vmigisdevils.rhcloud.com/cafe/api/cafetypes/", typeHandler);
 
              directionsDisplay = new google.maps.DirectionsRenderer();
              directionsDisplay.setMap(map);
@@ -219,60 +242,84 @@
 
             var price = document.getElementById('price').value;
             var distance = document.getElementById('distance').value;
-            //var cuisine = document.getElementById('cuisine').value;
-            var type = document.getElementById('type').value;
-            var selectedCuisine = document.getElementById('cuisine_select').value;
+            //var type = document.getElementById('type').value;
+            //var selectedCuisine = document.getElementById('cuisine_select').value;
+           // var selectedType = document.getElementById('type_select').value;
 
-            //sendHttpRequest("http://django-vmigisdevils.rhcloud.com/cafe/api/addresses/?price=" + price + "&distance=" + distance + "&latitude=" + initialLocation.latitude + "&longitude=" + initialLocation.longitude + "&cuisine=" + cuisine, httpHandler);
-            //sendHttpRequest("http://cafegis-vmigisdevils.rhcloud.com/cafe/api/addresses/?max_price=" + price + "&distance=" + //distance + "&latitude=" + 55 + "&longitude=" + 55, httpHandler);
-            sendHttpRequest("http://cafegis-vmigisdevils.rhcloud.com/cafe/api/addresses/?distance=500&latitude=55.1765&longitude=61.39879", httpHandler);
-            //sendHttpRequest("http://cafegis-vmigisdevils.rhcloud.com/cafe/addresses/cafetypes", httpHandler);
+            var requestString = "http://cafegis-vmigisdevils.rhcloud.com/cafe/api/addresses/";
+            requestString += "?latitude=";
+            requestString += initialLocation.lat();
+            requestString += "&longitude=";
+            requestString += initialLocation.lng();
+          
+            requestString += "&distance=";
+            if (distance != "")
+              requestString += distance;
+            else
+              requestString += "100";
+
+            if (price != "")
+            {
+              requestString += "&max_price=";
+              requestString += price;
+            }
+
+            var data = document.forms.data_form;
+            for (var i = 0; i < data.cuisine_select.length; i++)
+            {
+              if (data.cuisine_select[i].selected)
+              {
+                requestString += "&cuisines=";
+                requestString += data.cuisine_select[i].value;
+              }
+            }
+
+            for (var i = 0; i < data.type_select.length; i++)
+            {
+              if (data.type_select[i].selected)
+              {
+                requestString += "&cafetypes=";
+                requestString += data.type_select[i].value;
+              }
+            }
+            
+            sendHttpRequest(requestString, httpHandler);
+            deleteMarkers();
           };
 
           google.maps.event.addDomListener(window, 'load', initialize);
 
       </script>
   </head>
-  <body>
-  <!--
-  <iframe
-    width="450"
-    height="250"
-    frameborder="0" style="border:0"
-    src="https://www.google.com/maps/embed/v1/search?key=AIzaSyBjNmXUhHhcG- Zh2SZ6fWn0uyIWBByJSXY&q=record+stores+in+Seattle">
-    </iframe>
-    -->
+  <body background="bg.jpg">
     <div id="panel">
-      <form id="data form">
+      <form id="data_form">
         <b>Price:   </b>
         <input id="price" type="text">
+        <br />
         <b>Distance:</b>
         <input id="distance" type="text">
+        <br />
         <b>Cuisine: </b>
         <div id="cuisinepanel">
         </div>
+        <br />
         <b>Type:    </b>
-        <input id="type" type="text">
-        <!--<input type="submit" onclick="submit()"> -->
-        <!--<select id="start" onchange="calcRoute();">
-          <option value="current location">Current Location</option>
-        </select> -->
+        <div id="typepanel">
+        </div>
       </form>
       <br />
-      <b>Mode of Travel: </b>
+     <!-- <b>Mode of Travel: </b>
       <select id="mode" onchange="calcRoute();">
         <option value="DRIVING">Driving</option>
         <option value="WALKING">Walking</option>
         <option value="BICYCLING">Bicycling</option>
         <option value="TRANSIT">Transit</option>
-      </select>
-      <br />
+      </select> -->
       <br />
       <button id="sendRequest" onclick="submit()">Search for Cafe</button>
-      <!--<button id="drop" onclick="drop()">Search Cafe</button>
-      <button id="remap" onclick="remap()">Remap</button> -->
     </div>
-    <div id="side"></div>
+    <div id="side" style="overflow:scroll; height:630px;"></div>
     <div id="map-canvas"/>
   </body>
 </html>
