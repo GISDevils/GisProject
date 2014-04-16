@@ -4,7 +4,7 @@
     <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
       <style type="text/css">
           html { height: 100% }
-          body { height: 100%; margin: 0; padding: 0; background-image: "bg.jpg"; }
+          body { height: 100%; margin: 0; padding: 0; background-image: "bg.jpg";}
           #map-canvas 
           {
             position:absolute;
@@ -292,18 +292,19 @@
       </script>
   </head>
   <body background="bg.jpg">
-    <div id="panel">
+    <div id="panel" style="color:white;">
       <form id="data_form">
-        <b>Price:   </b>
+        <b>Price:</b>
+        <br />
         <input id="price" type="text">
         <br />
         <b>Distance:</b>
+        <br />
         <input id="distance" type="text">
         <br />
         <b>Cuisine: </b>
         <div id="cuisinepanel">
         </div>
-        <br />
         <b>Type:    </b>
         <div id="typepanel">
         </div>
@@ -319,7 +320,7 @@
       <br />
       <button id="sendRequest" onclick="submit()">Search for Cafe</button>
     </div>
-    <div id="side" style="overflow:scroll; height:630px;"></div>
+    <div id="side" style="overflow:scroll; height:630px; color:white;"></div>
     <div id="map-canvas"/>
   </body>
 </html>
