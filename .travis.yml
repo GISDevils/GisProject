@@ -1,8 +1,29 @@
 # .travis.yml
-install:
-  - bundle install
+branches:
+  only:
+    - master
+
+language: python
 
 before_script:
-  - mysql --user='travis' --password='' < ./database.sql
+  - mysql -e 'create database gis;'
 
-script: ruby ./parser.rb
+python:
+  - "2.7"
+
+env:
+  - DJANGO=1.5
+
+install:
+  - pip install -r requirements.txt
+
+script:
+  - python GIS/manage.py test
+
+deploy:
+  provider: openshift
+  app: cafegis
+  user: d.yantsen@gmail.com
+  domain: vmigisdevils
+  password:
+    secure: S7AKoTe3TGeDJ2ffUwy18jbWoTEX47ZOC95KQgOKny3OYjUvESqje80SfBduyVxiLPJsZILIL/8IluhBuJ+zBbcM/DGDPS9y/rOLoCF1B9JWxSS2xccD6EgEOWTIS0c/yzPb3kGw+kqLa0qi9Oq4bIs671+S6EEkxQSkAyZkIfw=

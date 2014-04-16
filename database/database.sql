@@ -1,5 +1,11 @@
-DROP DATABASE IF EXISTS gis;
-CREATE DATABASE gis COLLATE utf8_general_ci;
+DROP DATABASE IF EXISTS `gis`;
+CREATE DATABASE `gis`;
+
+USE 'mysql';
+GRANT ALL PRIVILEGES ON gis.* TO 'gis_user'@'localhost' IDENTIFIED BY 'qwerty'
+
+WITH GRANT OPTION;
+FLUSH PRIVILEGES;
 
 USE gis;
 
@@ -13,6 +19,7 @@ CREATE TABLE cafes (
 );
 
 CREATE TABLE addresses (
+	id INT(10) PRIMARY KEY AUTO_INCREMENT,
 	cafe_id INT(10) NOT NULL,
 	street VARCHAR(50) NOT NULL,
 	building SMALLINT NOT NULL,
@@ -67,6 +74,7 @@ CREATE TABLE cuisines (
 );
 
 CREATE TABLE types (
+	id INT(10) PRIMARY KEY AUTO_INCREMENT,
 	cafe_id INT(10) NOT NULL,
 	type_id SMALLINT NOT NULL,
 
