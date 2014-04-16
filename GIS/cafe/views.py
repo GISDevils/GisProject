@@ -4,8 +4,8 @@ from rest_framework.status import HTTP_400_BAD_REQUEST
 from rest_framework.viewsets import GenericViewSet
 from rest_framework import mixins
 from GIS.cafe.filters import AddressFilterBackend
-from GIS.cafe.models import Address, CuisineType
-from GIS.cafe.serializers import AddressSerializer, CuisineTypeSerializer
+from GIS.cafe.models import Address, CuisineType, CafeType
+from GIS.cafe.serializers import AddressSerializer, CuisineTypeSerializer, CafeTypeSerializer
 
 
 class AddressesViewSet(mixins.ListModelMixin, GenericViewSet):
@@ -24,3 +24,8 @@ class AddressesViewSet(mixins.ListModelMixin, GenericViewSet):
 class CuisineTypesViewSet(mixins.ListModelMixin, GenericViewSet):
     serializer_class = CuisineTypeSerializer
     model = CuisineType
+
+
+class CafeTypesViewSet(mixins.ListModelMixin, GenericViewSet):
+    serializer_class = CafeTypeSerializer
+    model = CafeType

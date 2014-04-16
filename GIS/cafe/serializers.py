@@ -2,13 +2,19 @@
 from rest_framework.fields import DecimalField, IntegerField
 from rest_framework.relations import RelatedField
 from rest_framework.serializers import ModelSerializer, Serializer
-from GIS.cafe.models import Address, Cafe, CuisineType
+from GIS.cafe.models import Address, Cafe, CuisineType, CafeType
 from GIS.fields import ListField
 
 
 class CuisineTypeSerializer(ModelSerializer):
     class Meta:
         model = CuisineType
+        fields = ['id', 'name']
+
+
+class CafeTypeSerializer(ModelSerializer):
+    class Meta:
+        model = CafeType
         fields = ['id', 'name']
 
 
