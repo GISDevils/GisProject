@@ -105,7 +105,6 @@ class PageParser
 		@@types.each do |type, id|
 			result << id unless Unicode::downcase(new_type).index(type).nil? or id.nil?
 		end
-		puts new_type if result.empty?
 		return result
 	end
 
