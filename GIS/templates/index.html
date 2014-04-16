@@ -180,10 +180,6 @@
              }
 
             var request = "/cafe/api/addresses/";
-            request += "?latitude=";
-            request += initialLocation.lat();
-            request += "&longitude=";
-            request += initialLocation.lng();
 
             sendHttpRequest(request, httpHandler);
 
