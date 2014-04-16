@@ -15,7 +15,7 @@ class CafeType(models.Model):
 class Cafe(models.Model):
     id = models.IntegerField(primary_key=True)
     name = models.CharField(max_length=50L, unique=True)
-    phones = models.CharField(max_length=30L, null=True)
+    phones = models.CharField(max_length=30L, null=True, default=None)
     avg_price = models.IntegerField(null=True, blank=True)
 
     class Meta:
