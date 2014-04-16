@@ -76,6 +76,10 @@
                 infoString += "Phone: Not Available :(" + "<br />";
               else
                 infoString += "Phone: " + obj.results[i].phones + "<br />";
+              if (obj.results[i].avg_price == null)
+                infoString += "Average price: Not Available :(" + "<br />";
+              else
+                infoString += "Average price: " + obj.results[i].avg_price + "<br />";
 
               addMarker(obj.results[i].latitude, obj.results[i].longitude);
 
