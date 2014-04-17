@@ -82,7 +82,7 @@
               else
                 infoString += "Average price: " + obj.results[i].avg_price + "<br />";
 
-              addMarker(obj.results[i].latitude, obj.results[i].longitude);
+              addMarker(obj.results[i].latitude, obj.results[i].longitude, obj.results[i].name);
 
               if (i == 0)
                 map.setCenter(new google.maps.LatLng(obj.results[i].latitude, obj.results[i].longitude));
@@ -214,12 +214,13 @@
             }
           }
 
-          function addMarker(latitude, longitude) 
+          function addMarker(latitude, longitude, title)
           {
             markers.push(new google.maps.Marker({
               position: new google.maps.LatLng(latitude, longitude),
               map: map,
               draggable: false,
+              title: title,
               animation: google.maps.Animation.DROP
               }));
           }
