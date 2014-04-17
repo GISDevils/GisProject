@@ -186,12 +186,12 @@
 
            }
 
-           function calcRoute() 
+           function calcRoute(lat, long)
            {
-            var selectedMode = document.getElementById('mode').value;
+            var selectedMode = "DRIVING";
             var request = {
               origin: initialLocation,
-              destination: new google.maps.LatLng(55.1765, 61.39879),
+              destination: new google.maps.LatLng(lat, long),
     
               travelMode: google.maps.TravelMode[selectedMode]
             };
@@ -216,13 +216,17 @@
 
           function addMarker(latitude, longitude, title)
           {
-            markers.push(new google.maps.Marker({
+            var marker = new google.maps.Marker({
               position: new google.maps.LatLng(latitude, longitude),
               map: map,
               draggable: false,
               title: title,
               animation: google.maps.Animation.DROP
-              }));
+              });
+            markers.push(marker);
+            google.maps.event.addListener(marker, 'click', function() {
+              calcRoute(latitude, longitude);
+            });
           }
 
           function setAllMap(map)
@@ -301,6 +305,7 @@
           google.maps.event.addDomListener(window, 'load', initialize);
 
 
+
 </script>
 </head>
 <body background="{{MEDIA_URL}}img/bg.jpg">
@@ -324,6 +329,7 @@
         </div>
     </form>
     <br/>
+    <button id="directionsRequest" onclick="calcRoute()">Show route</button>
     <!-- <b>Mode of Travel: </b>
      <select id="mode" onchange="calcRoute();">
        <option value="DRIVING">Driving</option>
