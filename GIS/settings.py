@@ -200,7 +200,7 @@ REST_FRAMEWORK = {
         'rest_framework.renderers.UnicodeJSONRenderer',
         'rest_framework.renderers.BrowsableAPIRenderer',
     ),
-    'PAGINATE_BY': 100,
+    'PAGINATE_BY': 1000,
 }
 
 CORS_ORIGIN_ALLOW_ALL = True
