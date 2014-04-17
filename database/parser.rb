@@ -12,31 +12,82 @@ require 'unicode'
 
 require_relative 'secrets'
 
-def extract_unique_values hash_array, key
-	values = Array.new
-	hash_array.map do |hash|
-		values << (Array.new << hash[key])
-	end
-	return values.flatten.uniq
-end
- 
-def surround_values values
-	surrounded_values = String.new
-	values.each do |value|
-		surrounded_values << ',' unless surrounded_values.empty?
-		surrounded_values << '(' << value.inspect << ')'
-	end
-	return surrounded_values
-end
- 
-def quote_values values
-	quoted_values = String.new
-	values.each do |value|
-		quoted_values << ',' unless quoted_values.empty?
-		quoted_values << value.inspect
-	end
-	return quoted_values
-end
+TYPES = {
+	"ресторан" => 1,
+	"кафе" => 2,
+	"бар" => 3,
+	"суши" => 4,
+	"доставка" => 7,
+	"пиццерия" => 5,
+	"café" => 2,
+	"bar" => 3,
+	"караоке" => 6,
+	"restaurant" => 1,
+	"паб" => 8,
+	"кофе" => 9,
+	"cafe" => 2,
+	"банкет" => 10,
+	"ночной клуб" => 11,
+	"бильярд" => 12,
+	"комплекс" => 13,
+	"пирог" => 14,
+	"трактир" => 8,
+	"кондитерск" => 15,
+	"пекарн" => 15,
+	"karaoke" => 6,
+	"дайнер" => 1,
+	"стейк" => 1,
+	"боулинг" => 16,
+	"зал" => 10,
+	"клуб" => 3,
+	"кулинар" => 15
+}
+
+CUISINES = {
+	"австрийская" => 1,
+	"авторская" => 2,
+	"азербайджанская" => 3,
+	"азиатская" => 4,
+	"американская" => 5,
+	"английская" => 6,
+	"армянская" => 7,
+	"восточная" => 8,
+	"вьетнамская" => 9,
+	"греческая" => 10,
+	"грузинская" => 11,
+	"домашняя" => 12,
+	"европейская" => 13,
+	"еропейская" => 13,
+	"индийская" => 14,
+	"индонезийская" => 15,
+	"интернациональная" => 16,
+	"итальянская" => 17,
+	"кавказская" => 18,
+	"китайская" => 19,
+	"корейская" => 20,
+	"малазийская" => 21,
+	"мексиканская" => 22,
+	"монгольская" => 23,
+	"мясная" => 24,
+	"немецкая" => 25,
+	"непальская" => 26,
+	"паназиатская" => 27,
+	"пацанская" => 28,
+	"персидская" => 29,
+	"русская" => 30,
+	"сербская" => 31,
+	"советская" => 32,
+	"средиземноморская" => 33,
+	"тайская" => 34,
+	"татарская" => 35,
+	"турецкая" => 36,
+	"узбекская" => 37,
+	"уйгурская" => 38,
+	"украинская" => 39,
+	"французская" => 40,
+	"чешская" => 41,
+	"японская" => 42 
+}
 
 class PageParser
 	def initialize db, site
@@ -50,7 +101,6 @@ class PageParser
 				page = Nokogiri::HTML(open(@site[:uri] % i))
 				@places = @site[:parser].new.parse(page)
 
-				self.insert_values(:cuisins, "cuisine_types")
 				self.insert_cafes
 				self.insert_addresses
 			
@@ -62,47 +112,10 @@ class PageParser
 		end
 	end
 
-	protected
-	def insert_values key, table_name
-		values = extract_unique_values(@places, key)
-		@db.query "INSERT IGNORE INTO #{table_name}(name) VALUES %s" % surround_values(values) unless values.empty?
-	end
-
-	@@types = {
-		"ресторан" => 1,
-		"кафе" => 2,
-		"бар" => 3,
-		"суши" => 4,
-		"доставка" => 7,
-		"пиццерия" => 5,
-		"café" => 2,
-		"bar" => 3,
-		"караоке" => 6,
-		"restaurant" => 1,
-		"паб" => 8,
-		"кофе" => 9,
-		"cafe" => 2,
-		"банкет" => 10,
-		"ночной клуб" => 11,
-		"бильярд" => 12,
-		"комплекс" => 13,
-		"пирог" => 14,
-		"трактир" => 8,
-		"кондитерск" => 15,
-		"пекарн" => 15,
-		"karaoke" => 6,
-		"дайнер" => 1,
-		"стейк" => 1,
-		"боулинг" => 16,
-		"зал" => 10,
-		"клуб" => 3,
-		"кулинар" => 15
-	}
-
 	protected 
-	def get_type_id new_type
+	def get_type_id types, new_type
 		result = Array.new
-		@@types.each do |type, id|
+		types.each do |type, id|
 			result << id unless Unicode::downcase(new_type).index(type).nil? or id.nil?
 		end
 		return result
@@ -145,23 +158,30 @@ class PageParser
 	end
 
 	protected
-	def associate_cafes
-		types = String.new
+	def filters names, values_key, ids_key
+		result = String.new
 		@places.each do |place|
 			next if place[:id] == nil
-			@db.query "INSERT IGNORE INTO cuisines(cafe_id, cuisine_id) SELECT %i, id FROM cuisine_types WHERE name IN (%s)" % [place[:id], quote_values(place[:cuisins])] unless place[:cuisins].empty?
-
-			place[:types].each do |type|
-				type_id = get_type_id type
-				place[:types_ids].concat type_id unless type_id.nil?
+			place[values_key].each do |type|
+				type_id = get_type_id names, type
+				place[ids_key].concat type_id unless type_id.nil?
 			end
 
-			place[:types_ids].each do |type_id|
-				types << ',' unless types.empty?
-				types << '(' << place[:id] << ',' << type_id.to_s << ')'
+			place[ids_key].each do |type_id|
+				result << ',' unless result.empty?
+				result << '(' << place[:id] << ',' << type_id.to_s << ')'
 			end
 		end
+		return result
+	end
+
+	protected
+	def associate_cafes
+		types = filters TYPES, :types, :types_ids
+		cuisines = filters CUISINES, :cuisins, :cuisins_ids
+
 		@db.query "INSERT IGNORE INTO types(cafe_id, type_id) VALUES %s" % [types] unless types.empty?
+		@db.query "INSERT IGNORE INTO cuisines(cafe_id, cuisine_id) VALUES %s" % [cuisines] unless cuisines.empty?
 	end
 end
 
@@ -206,6 +226,7 @@ class Resto74Parser
 
 		cuisins_list = place_data.scan(/(?<=Кухня: )([A-Zа-я\,\s]*)/)[0]
 		new_place[:cuisins] = (cuisins_list != nil) ? cuisins_list[0].strip.downcase.split(', ') : []
+		new_place[:cuisins_ids] = []
 
 		new_place[:avg_price] = nil
 
@@ -246,6 +267,7 @@ class GobarsParser
 		new_place[:building] = building.strip.downcase
 
 		new_place[:cuisins] = []
+		new_place[:cuisins_ids] = []
 
 		phones = blocks[phones_id].css('span') unless phones_id >= size or phones_id <= address_id
 		new_place[:phones] = (phones != nil and not phones.empty?) ? phones[0].text.downcase.strip : nil
@@ -320,6 +342,16 @@ class Storage
 		@db.query 'INSERT INTO cafes(id, avg_price) VALUES %s ON DUPLICATE KEY UPDATE avg_price = VALUES(avg_price)' % [prices] unless prices.empty?
 	end
 
+	def generate_cuisines
+		cuisines = String.new
+		@db.query('SELECT id FROM cafes WHERE id NOT IN (SELECT cafe_id FROM cuisines)').each_hash do |row|
+			cafe_id = row['id']
+			cuisines << ',' unless cuisines.empty?
+			cuisines << '(' << cafe_id << ',' << [*1..CUISINES.values.max].sample.to_s << ')'
+		end
+		@db.query 'INSERT INTO cuisines(cafe_id, cuisine_id) VALUES %s' % [cuisines] unless cuisines.empty?
+	end
+
 	def shutdown
 		@db.close if @db	
 	end
@@ -332,9 +364,11 @@ begin
 	]
 
 	storage = Storage.new
+
 	storage.get_info sites
 
 	storage.generate_prices
+	storage.generate_cuisines
 	storage.update_geolocations
 
 	storage.shutdown
